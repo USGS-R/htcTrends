@@ -9,6 +9,7 @@
 #' @import smwrGraphs
 #' @import usgsEGRET
 #' @import leaflet
+#' @import dplyr
 explore_model <- function(browse=TRUE){
   if(is.null(current_session())) authenticate_sb()
   runApp(system.file('shiny',package='htcTrends'), launch.browser = browse)

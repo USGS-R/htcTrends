@@ -49,7 +49,14 @@ shinyUI(
                tabPanel("Map",
                         fluidRow(
                           column(3,
-                                 uiOutput("paramList")),
+                                 uiOutput("paramList"),
+                                 selectInput("trendTime", label = "Trend Timeline", 
+                                             choices = c("All","1972-2012","1982-2012","1992-2012","2002-2012"),
+                                             multiple = FALSE),
+                                 radioButtons("flux", label = "", inline = TRUE,
+                                              choices = c("Conc","Flux")),
+                                 radioButtons("up", label = "Trend", inline = TRUE,
+                                              choices = c("Up", "Down"))),
                           column(9,
                                  leaflet::leafletOutput("mymap"))
                         )),

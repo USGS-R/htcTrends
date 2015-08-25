@@ -2,6 +2,7 @@ library(usgsEGRET)
 library(smwrGraphs)
 library(sbtools)
 library(leaflet)
+library(dplyr)
 
 # Fix in sbtools will allow this to work, in the meantime, it's in extdata:
 # rawDataID <- "555a0a81e4b0a92fa7e9f3aa"
@@ -608,21 +609,85 @@ shinyServer(function(input, output) {
       paramList = input$paramList
     }
     
+    if(is.null(input$trendTime)){
+      trendTime = "All"
+    } else {
+      trendTime = input$trendTime
+    }
+    
+    if(is.null(input$up)){
+      up = "Up"
+    } else {
+      up = input$up
+    }
+    
+    if(is.null(input$flux)){
+      fluxOrConc = "Conc"
+    } else {
+      fluxOrConc = input$flux
+    }
+    
     if(paramList == "All"){
       subData <- genInfo
     } else {
       subData <- genInfo[genInfo$paramShortName == paramList,]
     }
     
+    subData <- suppressWarnings(left_join(subData, bootOut))
+    
+    if(trendTime == "All"){
+      subData <- subData
+    } else {
+      
+      subData <- switch(trendTime,
+                        "1972-2012" = subData[subData$yearStart %in% c(1970:1975),],
+                        "1982-2012" = subData[subData$yearStart %in% c(1980:1985),],
+                        "1992-2012" = subData[subData$yearStart %in% c(1990:1995),],
+                        "2002-2012" = subData[subData$yearStart %in% c(2000:2005),])
+
+    }
+    
+    subData <- subData[!is.na(subData$yearStart),]
+    
+    if(fluxOrConc == "Flux"){
+      if(up == "Up"){
+        subData$colData <- subData$likeFUp
+        legendTitle <- "Flux is Upwards"
+      } else {
+        subData$colData <- subData$likeFDown
+        legendTitle <- "Flux is Downwards"
+      }
+    } else {
+      if(up == "Up"){
+        subData$colData <- subData$likeCUp
+        legendTitle <- "Conc is Upwards"
+      } else {
+        subData$colData <- subData$likeCDown
+        legendTitle <- "Conc is Downwards"
+      }
+    }
+    
+    col_types <- c("darkblue","dodgerblue","green","yellow","orange","red","brown")
+    leg_vals <- unique(as.numeric(quantile(subData$colData, probs=c(0,0.01,0.1,0.25,0.5,0.75,0.9,.99,1), na.rm=TRUE)))
+    
+    pal = colorBin(col_types, subData$colData, bins = leg_vals)
+
     leafletProxy("mymap", data=subData) %>%
       clearShapes() %>%
       clearControls() %>%
       addCircles(lat=~dec_lat_va, lng=~dec_long_va, 
                  popup=paste0('<b>',as.character(subData$station_nm),"</b>") ,
-                 fillColor = "red", 
-                 weight = 1,
+                 fillColor = ~pal(colData), 
+                 weight=1,
+                 radius=20000,
                  color = "black",
-                 fillOpacity = 0.8, opacity = 0.8) 
+                 fillOpacity = 0.8, opacity = 0.8) %>%
+      addLegend(
+        position = 'bottomleft',
+        pal=pal,
+        values=~colData,
+        opacity = 0.8,
+        title = legendTitle)
     
     
   })

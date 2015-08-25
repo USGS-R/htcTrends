@@ -19,4 +19,5 @@ Imports:
     shiny,
     leaflet,
     usgsEGRET,
-    smwrGraphs
+    smwrGraphs,
+    dplyr

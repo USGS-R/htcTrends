@@ -8,7 +8,14 @@
 #' @import sbtools
 #' @import smwrGraphs
 #' @import usgsEGRET
-#' @import leaflet
+#' @importFrom leaflet addLegend
+#' @importFrom leaflet addCircles
+#' @importFrom leaflet clearControls
+#' @importFrom leaflet clearShapes
+#' @importFrom leaflet leafletProxy
+#' @importFrom leaflet colorBin
+#' @importFrom leaflet addProviderTiles
+#' @importFrom leaflet leaflet
 #' @import dplyr
 explore_model <- function(browse=TRUE){
   if(is.null(current_session())) authenticate_sb()

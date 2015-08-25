@@ -1,71 +1,632 @@
-library(dplyr)
+library(usgsEGRET)
+library(smwrGraphs)
+library(sbtools)
 library(leaflet)
+
+# Fix in sbtools will allow this to work, in the meantime, it's in extdata:
+# rawDataID <- "555a0a81e4b0a92fa7e9f3aa"
+# 
+# tempFolder <- tempdir()
+# 
+# item_file_download(rawDataID, names='Round1_INFO_v3.csv',
+#                    destinations = file.path(tempFolder,'Round1_INFO_v3.csv'), 
+#                    overwrite_file=TRUE)
+# 
+# genInfo <- read.csv(file.path(tempFolder,'Round1_INFO_v3.csv'))
+# 
+# item_file_download(rawDataID, names='bootOut.csv',
+#                    destinations = file.path(tempFolder,'bootOut.csv'), 
+#                    overwrite_file=TRUE)
+# 
+# bootOut <- read.csv(file.path(tempFolder,'bootOut.csv'))
+
+bootOut <- read.csv(file.path(system.file("extdata", package="htcTrends"),'bootOut.csv'))
+genInfo <- read.csv(file.path(system.file("extdata", package="htcTrends"),'Round1_INFO_v3.csv'))
+
+eList_Start <- Choptank_eList
 
 
 shinyServer(function(input, output) {
   
+  eList <- reactive({
     
+    if(is.null(input$paStart)){
+      paStart <- 10
+    } else {
+      paStart = as.integer(which(month.name == input$paStart))
+    }
+    
+    if(is.null(input$paLong)){
+      paLong <- 12
+    } else {
+      paLong = as.integer(input$paLong)
+    }
+    
+    if(!is.null(input$data)){
+      path <- input$data$datapath
+      fileName <- input$data$name
+      
+      extension <- strsplit(fileName, "\\.")[[1]][2]
+      fileName <- strsplit(fileName, "\\.")[[1]][1]
+      
+      if(extension == "rds"){
+        eList_Start <- readRDS(input$data$datapath)
+      } else {
+        #Remove old eList:
+        for ( obj in ls() ) { 
+          if(class(get(obj)) == "egret"){
+            rm(list=as.character(obj))
+          } 
+        }
+        #Load new:
+        load(input$data$datapath)
+        #Assign to eList_Start
+        for ( obj in ls() ) { 
+          if(class(get(obj)) == "egret"){
+            assign("eList_Start", get(obj))
+            break
+          }
+        }
+      }
+    }
+    
+    eList <- setPA(eList_Start, paStart, paLong)
+    
+  })
+  
+  output$flowPlotsOut <- renderPlot({ 
+    
+    eList <- eList()
+    
+    if(is.null(input$flowStat)){
+      stat=5
+    } else {
+      stat = as.integer(input$flowStat)
+    }
+    
+    if(is.null(input$qUnit)){
+      qUnit = 1
+    } else {
+      qUnit = as.integer(input$qUnit)
+    }
+    
+    if(is.null(input$logScaleFlow)){
+      logScale = FALSE
+    } else {
+      logScale = as.logical(as.integer(input$logScaleFlow))
+    }
+    
+    setPNG()
+    
+    switch(input$flowPlots,
+           "plotFlowSingle" = plotFlowSingle(eList, istat=stat, qUnit = qUnit, USGSstyle = TRUE),
+           "plotSDLogQ" = plotSDLogQ(eList, USGSstyle = TRUE),
+           "plotQTimeDaily" = plotQTimeDaily(eList, qUnit = qUnit, logScale = logScale),
+           "plotFour" = plotFour(eList, qUnit = qUnit),
+           "plotFourStats" = plotFourStats(eList, qUnit = qUnit)
+           
+    )
+  })
+  
+  output$dataPlotsOut <- renderPlot({ 
+    
+    eList <- eList()
+    
+    if(is.null(input$qUnit)){
+      qUnit = 1
+    } else {
+      qUnit = as.integer(input$qUnit)
+    }
+    
+    if(is.null(input$logScaleData)){
+      logScale = FALSE
+    } else {
+      logScale = as.logical(as.integer(input$logScaleData))
+    }
+    
+    setPNG()
+    
+    switch(input$dataPlots,
+           "boxConcMonth" = boxConcMonth(eList, logScale = logScale, USGSstyle = TRUE),
+           "boxQTwice" = boxQTwice(eList, qUnit = qUnit, USGSstyle = TRUE),
+           "plotConcTime" = plotConcTime(eList, logScale = logScale, USGSstyle = TRUE),
+           "plotConcQ" = plotConcQ(eList, qUnit = qUnit, logScale = logScale, USGSstyle = TRUE),
+           "multiPlotDataOverview" = multiPlotDataOverview(eList, qUnit = qUnit, USGSstyle = TRUE)
+           
+    )
+  })
+  
+  output$modelPlotsOut <- renderPlot({
+    
+    eList <- eList()
+    
+    if(is.null(input$date1)){
+      date1 = as.Date(quantile(eList$Daily$Date, type=1, probs = 0.1), origin="1970-01-01")
+    } else {
+      date1 = input$date1
+    }
+    
+    if(is.null(input$date2)){
+      date2 = as.Date(quantile(eList$Daily$Date, type=1, probs = 0.5), origin="1970-01-01")
+    } else {
+      date2 = input$date2
+    }
+    
+    if(is.null(input$date3)){
+      date3 = as.Date(quantile(eList$Daily$Date, type=1, probs = 0.9), origin="1970-01-01")
+    } else {
+      date3 = input$date3
+    }
+    
+    if(is.null(input$qLow)){
+      qLow = round(quantile(eList$Daily$Q, probs = 0.1),digits = 1)
+    } else {
+      qLow = input$qLow
+    }
+    
+    if(is.null(input$qHigh)){
+      qHigh = round(quantile(eList$Daily$Q, probs = 0.9),digits = 1)
+    } else {
+      qHigh = input$qHigh
+    }
+    
+    if(is.null(input$qMid)){
+      qMid = round(quantile(eList$Daily$Q, probs = 0.5),digits = 1)
+    } else {
+      qMid = input$qMid
+    }
+    
+    if(is.null(input$qUnit)){
+      qUnit = 1
+    } else {
+      qUnit = as.integer(input$qUnit)
+    }
+    
+    if(is.null(input$logScaleModel)){
+      logScale = FALSE
+    } else {
+      logScale = as.logical(as.integer(input$logScaleModel))
+    }
+    
+    if(is.null(input$fluxUnit)){
+      fluxUnit = 3
+    } else {
+      fluxUnit = as.integer(input$fluxUnit)
+    }
+    
+    if(is.null(input$centerDate)){
+      centerDate = "04-01"
+    } else {
+      centerDate = input$centerDate
+    }
+    
+    if(is.null(input$yearStart)){
+      yearStart = ceiling(min(eList$Daily$DecYear))
+    } else {
+      yearStart = as.integer(input$yearStart)
+    }
+    
+    if(is.null(input$yearEnd)){
+      yearEnd = floor(max(eList$Daily$DecYear))
+    } else {
+      yearEnd = as.integer(input$yearEnd)
+    }
+    
+    if(is.null(input$maxDiff)){
+      maxDiff = diff(range(eList$Sample$ConcAve))
+    } else {
+      maxDiff = as.integer(input$maxDiff)
+    }
+    
+    setPNG()
+    
+    switch(input$modelPlots,
+           "plotConcTimeDaily" = plotConcTimeDaily(eList),
+           "plotFluxTimeDaily" = plotFluxTimeDaily(eList, fluxUnit=fluxUnit),
+           "plotConcPred" = plotConcPred(eList, logScale = logScale, USGSstyle = TRUE),
+           "plotFluxPred" = plotFluxPred(eList, fluxUnit=fluxUnit, USGSstyle = TRUE),
+           "plotResidPred" = plotResidPred(eList, USGSstyle = TRUE),
+           "plotResidQ" = plotResidQ(eList, qUnit=qUnit, USGSstyle = TRUE),
+           "plotResidTime" = plotResidTime(eList, USGSstyle = TRUE),
+           "boxResidMonth" = boxResidMonth(eList, USGSstyle = TRUE),
+           "boxConcThree" = boxConcThree(eList, USGSstyle = TRUE),
+           "plotConcHist" = plotConcHist(eList, USGSstyle = TRUE),
+           "plotFluxHist" = plotFluxHist(eList, fluxUnit=fluxUnit, USGSstyle = TRUE),
+           "plotConcQSmooth" = plotConcQSmooth(eList, date1=date1,date2=date2, date3=date3,qLow=qLow,qHigh=qHigh),
+           "plotConcTimeSmooth" = plotConcTimeSmooth(eList, q1=qLow, q2=qMid, q3=qHigh, logScale = logScale,
+                                                     centerDate=centerDate,yearStart=yearStart, yearEnd=yearEnd),
+           "fluxBiasMulti" = fluxBiasMulti(eList, fluxUnit=fluxUnit, qUnit=qUnit, USGSstyle = TRUE),
+           "plotContours" = plotContours(eList, qUnit=qUnit,yearStart = yearStart, yearEnd = yearEnd,
+                                         qBottom = qLow, qTop=qHigh),
+           "plotDiffContours" = plotDiffContours(eList, year0=yearStart,year1 = yearEnd, maxDiff = maxDiff,
+                                                 qUnit=qUnit,qBottom = qLow, qTop=qHigh)
+    )
+  })
+  
+  output$SampleText <- renderUI({
+    
+    eList <- eList()
+    
+    if(is.na(eList$Sample)){
+      HTML(paste0("<h4>","No water quality data", "</h4>"))
+    } else if(nrow(eList$Sample) == 0) {
+      HTML(paste0("<h4>","No water quality data", "</h4>"))
+    } else {
+      HTML("")
+    }
+  })
+  
+  output$modelText <- renderUI({
+    
+    eList <- eList()
+    
+    if(is.na(eList$Sample)){
+      HTML(paste0("<h4>","No water quality data", "</h4>"))
+    } else if(nrow(eList$Sample) == 0) {
+      HTML(paste0("<h4>","No water quality data", "</h4>"))
+    } else {
+      HTML("")
+    }
+  })
+  
+  output$flowLog <- renderUI({
+    if(input$flowPlots == "plotQTimeDaily"){
+      radioButtons("logScaleFlow", label = h4("Scale"),
+                   choices = list("Linear" = 0, "Log" = 1), 
+                   selected = 0)
+    }
+  })
+  
+  output$dataLog <- renderUI({
+    if(input$dataPlots %in% c("boxConcMonth", "plotConcTime", "plotConcQ")){
+      radioButtons("logScaleData", label = h4("Scale"),
+                   choices = list("Linear" = 0, "Log" = 1), 
+                   selected = 0)
+    }
+  })
+  
+  output$date1 <- renderUI({
+    if(input$modelPlots == "plotConcQSmooth"){
+      eList <- eList()
+      dateInput("date1", label = h5("date1"), 
+                value = as.Date(quantile(eList$Daily$Date, type=1, probs = 0.1), origin="1970-01-01"))
+    }
+  })
+  
+  output$yearStart <- renderUI({
+    if(input$modelPlots %in% c("plotConcTimeSmooth","plotContours","plotDiffContours")){
+      eList <- eList()
+      numericInput("yearStart", label = h5("yearStart"), value = ceiling(min(eList$Daily$DecYear)))
+    }
+  })
+  
+  output$maxDiff <- renderUI({
+    if(input$modelPlots %in% c("plotDiffContours")){
+      eList <- eList()
+      numericInput("maxDiff", label = h5("maxDiff"), value = diff(range(eList$Sample$ConcAve)))
+    }
+  })
+  
+  output$yearEnd <- renderUI({
+    if(input$modelPlots %in% c("plotConcTimeSmooth","plotContours","plotDiffContours")){
+      eList <- eList()
+      numericInput("yearEnd", label = h5("yearEnd"), value = floor(max(eList$Daily$DecYear)))
+    }
+  })
+  
+  output$date2 <- renderUI({
+    if(input$modelPlots == "plotConcQSmooth"){
+      eList <- eList()
+      dateInput("date2", label = h5("date2"), 
+                value = as.Date(quantile(eList$Daily$Date, type=1, probs = 0.5), origin="1970-01-01"))
+    }
+  })
+  
+  output$centerDate <- renderUI({
+    if(input$modelPlots == "plotConcQSmooth"){
+      textInput("centerDate", label = h5("centerDate"), value = "04-01")
+    }
+  })
+  
+  output$date3 <- renderUI({
+    if(input$modelPlots == "plotConcQSmooth"){
+      eList <- eList()
+      dateInput("date3", label = h5("date3"), 
+                value = as.Date(quantile(eList$Daily$Date, type=1, probs = 0.9), origin="1970-01-01"))
+    }
+  })
+  
+  output$qLow <- renderUI({
+    if(input$modelPlots %in% c("plotConcQSmooth","plotConcTimeSmooth","plotContours","plotDiffContours")){
+      eList <- eList()
+      qFactor <- qConst[shortCode=as.integer(input$qUnit)][[1]]
+      qFactor <- qFactor@qUnitFactor
+      numericInput("qLow", label = h5("qLow"), value = round(qFactor * quantile(eList$Daily$Q, probs = 0.1),digits = 1))
+    }
+  })
+  
+  output$qHigh <- renderUI({
+    if(input$modelPlots %in% c("plotConcQSmooth","plotConcTimeSmooth","plotContours","plotDiffContours")){
+      eList <- eList()
+      qFactor <- qConst[shortCode=as.integer(input$qUnit)][[1]]
+      qFactor <- qFactor@qUnitFactor
+      numericInput("qHigh", label = h5("qHigh"), value = round(qFactor * quantile(eList$Daily$Q, probs = 0.9),digits = 1))
+    }
+  })
+  
+  output$qMid <- renderUI({
+    if(input$modelPlots %in% c("plotConcQSmooth","plotConcTimeSmooth")){
+      eList <- eList()
+      qFactor <- qConst[shortCode=as.integer(input$qUnit)][[1]]
+      qFactor <- qFactor@qUnitFactor
+      numericInput("qMid", label = h5("qMid"), value = round(qFactor * quantile(eList$Daily$Q, probs = 0.5),digits = 1))
+    }
+  })
+  
+  output$modelLog <- renderUI({
+    if(input$modelPlots %in% c("plotConcPred","plotConcQSmooth","plotConcTimeSmooth")){
+      radioButtons("logScaleModel", label = h4("Scale"),
+                   choices = list("Linear" = 0, "Log" = 1), 
+                   selected = 0)
+    }
+  })
+  
+  output$flowStatistic <- renderUI({
+    if(input$flowPlots == "plotFlowSingle"){
+      selectInput("flowStat", label = "Flow Statistic", 
+                  choices = list("1-day minimum"=1, "7-day minimum"=2, "30-day minimum"=3, "median"=4,
+                                 "mean"=5, "30-day maximum"=6, "7-day maximum"=7, "1-day maximum"=8),
+                  selected = 5, multiple = FALSE)
+    }
+  })
+  
+  output$flowCode <- renderPrint({
+    
+    if(is.null(input$flowStat)){
+      stat=5
+    } else {
+      stat = as.integer(input$flowStat)
+    }
+    
+    if(is.null(input$qUnit)){
+      qUnit = 1
+    } else {
+      qUnit = as.integer(input$qUnit)
+    }
+    
+    if(is.null(input$paStart)){
+      paStart <- 10
+    } else {
+      paStart = as.integer(which(month.name == input$paStart))
+    }
+    
+    if(is.null(input$paLong)){
+      paLong <- 12
+    } else {
+      paLong = as.integer(input$paLong)
+    }
+    
+    
+    if(is.null(input$logScaleFlow)){
+      logScale = FALSE
+    } else {
+      logScale = as.logical(as.integer(input$logScaleFlow))
+    }
+    
+    outText <- switch(input$flowPlots,
+                      "plotFlowSingle" = paste0("plotFlowSingle(eList, istat=", stat,", qUnit = ", qUnit, ")"),
+                      "plotSDLogQ" = paste0("plotSDLogQ(eList", ")"),
+                      "plotQTimeDaily" = paste0("plotQTimeDaily(eList, logScale = ",logScale,", qUnit = ", qUnit, ")"),
+                      "plotFour" = paste0("plotFour(eList, qUnit = ", qUnit, ")"),
+                      "plotFourStats" = paste0("plotFourStats(eList, qUnit = ", qUnit, ")")
+                      
+    )
+    
+    HTML(paste0("<h5>setPA(eList, paStart = ",paStart, ", paLong = ", paLong,")</h5>",
+                "<h5>",outText,"</h5>"))
+    
+  })
+  
+  output$dataCode <- renderPrint({
+    
+    if(is.null(input$qUnit)){
+      qUnit = 1
+    } else {
+      qUnit = as.integer(input$qUnit)
+    }
+    
+    if(is.null(input$paStart)){
+      paStart <- 10
+    } else {
+      paStart = as.integer(which(month.name == input$paStart))
+    }
+    
+    if(is.null(input$paLong)){
+      paLong <- 12
+    } else {
+      paLong = as.integer(input$paLong)
+    }
+    
+    if(is.null(input$logScaleData)){
+      logScale = FALSE
+    } else {
+      logScale = as.logical(as.integer(input$logScaleData))
+    }
+    
+    outText <- switch(input$dataPlots,
+                      "boxConcMonth" = paste0("boxConcMonth(eList, logScale = ", logScale,")"),
+                      "boxQTwice" = paste0("boxQTwice(eList, qUnit = ", qUnit, ")"),
+                      "plotConcTime" = paste0("plotConcTime(eList, logScale = ", logScale,")"),
+                      "plotConcQ" = paste0("plotConcQ(eList, logScale = ", logScale,", qUnit = ", qUnit, ")"),
+                      "multiPlotDataOverview" = paste0("multiPlotDataOverview(eList, qUnit = ", qUnit, ")")
+                      
+    )
+    
+    HTML(paste0("<h5>setPA(eList, paStart = ",paStart, ", paLong = ", paLong,")</h5>",
+                "<h5>",outText,"</h5>"))
+    
+  })
+  
+  output$modelCode <- renderPrint({
+    
+    eList <- eList()
+    
+    if(is.null(input$qUnit)){
+      qUnit = 1
+    } else {
+      qUnit = as.integer(input$qUnit)
+    }
+    
+    if(is.null(input$fluxUnit)){
+      fluxUnit = 3
+    } else {
+      fluxUnit = as.integer(input$fluxUnit)
+    }
+    
+    if(is.null(input$paStart)){
+      paStart <- 10
+    } else {
+      paStart = as.integer(which(month.name == input$paStart))
+    }
+    
+    if(is.null(input$paLong)){
+      paLong <- 12
+    } else {
+      paLong = as.integer(input$paLong)
+    }
+    
+    if(is.null(input$date1)){
+      date1 = as.Date(quantile(eList$Daily$Date, type=1, probs = 0.1), origin="1970-01-01")
+    } else {
+      date1 = input$date1
+    }
+    
+    if(is.null(input$date2)){
+      date2 = as.Date(quantile(eList$Daily$Date, type=1, probs = 0.5), origin="1970-01-01")
+    } else {
+      date2 = input$date2
+    }
+    
+    if(is.null(input$date3)){
+      date3 = as.Date(quantile(eList$Daily$Date, type=1, probs = 0.9), origin="1970-01-01")
+    } else {
+      date3 = input$date3
+    }
+    
+    if(is.null(input$qLow)){
+      qLow = quantile(eList$Daily$Q, probs = 0.1)
+    } else {
+      qLow = input$qLow
+    }
+    
+    if(is.null(input$qHigh)){
+      qHigh = quantile(eList$Daily$Q, probs = 0.9)
+    } else {
+      qHigh = input$qHigh
+    }
+    
+    if(is.null(input$qMid)){
+      qMid = round(quantile(eList$Daily$Q, probs = 0.5),digits = 1)
+    } else {
+      qMid = input$qMid
+    }
+    
+    if(is.null(input$centerDate)){
+      centerDate = "04-01"
+    } else {
+      centerDate = input$centerDate
+    }
+    
+    if(is.null(input$yearStart)){
+      yearStart = ceiling(min(eList$Daily$DecYear))
+    } else {
+      yearStart = as.integer(input$yearStart)
+    }
+    
+    if(is.null(input$yearEnd)){
+      yearEnd = floor(max(eList$Daily$DecYear))
+    } else {
+      yearEnd = as.integer(input$yearEnd)
+    }
+    
+    if(is.null(input$maxDiff)){
+      maxDiff = diff(range(eList$Sample$ConcAve))
+    } else {
+      maxDiff = as.integer(input$maxDiff)
+    }
+    
+    outText <- switch(input$modelPlots,
+                      "plotConcTimeDaily" = paste0("plotConcTimeDaily(eList)"),
+                      "plotFluxTimeDaily" = paste0("plotFluxTimeDaily(eList, fluxUnit = ", fluxUnit),
+                      "plotConcPred" = paste0("plotConcPred(eList)"),
+                      "plotFluxPred" = paste0("plotFluxPred(eList, fluxUnit = ", fluxUnit, ")"),
+                      "plotResidPred" = paste0("plotResidPred(eList)"),
+                      "plotResidQ" = paste0("plotResidQ(eList, qUnit = ", qUnit, ")"),
+                      "plotResidTime" = paste0("plotResidTime(eList)"),
+                      "boxResidMonth" = paste0("boxResidMonth(eList)"),
+                      "boxConcThree" = paste0("boxConcThree(eList)"),
+                      "plotConcHist" = paste0("plotConcHist(eList)"),
+                      "plotFluxHist" = paste0("plotFluxHist(eList, fluxUnit = ", fluxUnit, ")"),
+                      "plotConcQSmooth" = paste0("plotConcQSmooth(eList, date1 = '",date1, "', date2 = '",
+                                                 date2,"', date3 = '",date3, "', qLow = ",qLow,", qHigh = ",qHigh,")"),
+                      "plotConcTimeSmooth" = paste0("plotConcTimeSmooth(eList, q1 = ",qLow,
+                                                    ", q2 = ",qMid, ", q3 = ",qHigh, ", yearStart = ",
+                                                    yearStart,", yearEnd = ",yearEnd,", centerDate = ",centerDate,")"),
+                      "fluxBiasMulti" = paste0("fluxBiasMulti(eList, qUnit = ", qUnit,", fluxUnit = ", fluxUnit, ")"),
+                      "plotContours" = paste0("plotContours(eList, qUnit=", qUnit,", yearStart = ",yearStart,
+                                              ", yearEnd = ",yearEnd,", qBottom = ",qLow,", qTop = ",qHigh,")"),
+                      "plotDiffContours" = paste0("plotDiffContours(eList, qUnit=",qUnit,", year0=",yearStart,",year1 = ",
+                                                  yearEnd,", qBottom = ",qLow,", qTop = ",qHigh, ", maxDiff = ",maxDiff,")")
+    )
+    
+    HTML(paste0("<h5>setPA(eList, paStart = ",paStart, ", paLong = ", paLong,")</h5>",
+                "<h5>",outText,"</h5>"))
+    
+  })
+  
+  output$mymap <- leaflet::renderLeaflet({
+    
+    leaflet() %>%
+      addProviderTiles("Esri.WorldPhysical") %>%
+      setView(lng = -99.5, lat = 40, zoom=4) 
+    
+  })
+  
+  output$paramList <- renderUI({
 
-    
-    output$mymap <- leaflet::renderLeaflet({
-      
-      leaflet() %>%
-        addProviderTiles("Esri.WorldPhysical") %>%
-        setView(lng = -83.5, lat = 44.5, zoom=5) 
-      
-    })
-    
-    observe({
-      
-#       if(nrow(sumStat) == 0){
-#         sumStat <- summaryFile
-#         sumStat$sumHits <- sumStat$nChem
-#       }
-#       
-#       mapData <- right_join(stationINFO, sumStat, by=c("shortName"="site"))
-#       mapData <- mapData[!is.na(mapData$dec.lat.va),]
-#       # mapData <- mapData[!is.na(mapData$nChem),]
-#       
-#       col_types <- c("darkblue","dodgerblue","green","yellow","orange","red","brown")
-#       leg_vals <- unique(as.numeric(quantile(mapData$maxEAR, probs=c(0,0.01,0.1,0.25,0.5,0.75,0.9,.99,1), na.rm=TRUE)))
-#       
-#       cols <- colorNumeric(col_types, domain = leg_vals)
-#       rad <- 1.5*seq(5000,25000, 500)
-#       mapData$sizes <- rad[as.numeric(
-#         cut(mapData$sumHits, 
-#             c(-1,unique(as.numeric(
-#               quantile(mapData$sumHits, probs=seq(.01,.99,length=length(rad)), na.rm=TRUE)
-#             )),(max(mapData$sumHits,na.rm=TRUE)+1))
-#         ))]
-#       pal = colorBin(col_types, mapData$maxEAR, bins = leg_vals)
-#       
-#       if(input$sites != "All"){
-#         mapData <- mapData[mapData$shortName == input$sites,]
-#       }
-#       
-#       leafletProxy("mymap", data=mapData) %>%
-#         clearShapes() %>%
-#         clearControls() %>%
-#         addCircles(lat=~dec.lat.va, lng=~dec.long.va, 
-#                    popup=mapData$Station.Name
-#                    #                    paste0('<b>',mapData$Station.Name,"</b><br/><table>",
-#                    #                           "<tr><td>Frequency</td><td>",sprintf("%1.1f",mapData$freq),'</td></tr>',
-#                    #                           "<tr><td>nSample</td><td>",mapData$nSamples,'</td></tr>',
-#                    #                           "<tr><td>maxEAR</td><td>",sprintf("%1.1f",mapData$maxEAR),'</td></tr>',
-#                    #                           "<tr><td>nChem</td><td>",mapData$nChem,'</td></tr>',
-#                    #                           "<tr><td>nEndPoints</td><td>",mapData$nEndPoints,'</td></tr></table>')
-#                    ,
-#                    fillColor = ~pal(maxEAR), 
-#                    weight = 1,
-#                    color = "black",
-#                    fillOpacity = 0.8, radius = ~sizes, opacity = 0.8) %>%
-#         addLegend(
-#           position = 'bottomleft',
-#           pal=pal,
-#           values=~maxEAR,
-#           opacity = 0.8,
-#           title = 'Maximum EAR')
-      
-    })
+    selectInput("paramList", label = "Parameter", 
+                choices = c("All",levels(genInfo$paramShortName)),
+                 multiple = FALSE)
 
+  })
+  
+  observe({
+    
+    if(is.null(input$paramList)){
+      paramList = "All"
+    } else {
+      paramList = input$paramList
+    }
+    
+    if(paramList == "All"){
+      subData <- genInfo
+    } else {
+      subData <- genInfo[genInfo$paramShortName == paramList,]
+    }
+    
+    leafletProxy("mymap", data=subData) %>%
+      clearShapes() %>%
+      clearControls() %>%
+      addCircles(lat=~dec_lat_va, lng=~dec_long_va, 
+                 popup=paste0('<b>',as.character(subData$station_nm),"</b>") ,
+                 fillColor = "red", 
+                 weight = 1,
+                 color = "black",
+                 fillOpacity = 0.8, opacity = 0.8) 
+    
+    
+  })
+  
+  
+  
 })

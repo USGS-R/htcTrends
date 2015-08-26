@@ -12,4 +12,9 @@ explore_model(browse = TRUE)
 \description{
 Open interactive graphs for metabolism models
 }
+\examples{
+\dontrun{
+explore_model()
+}
+}
 

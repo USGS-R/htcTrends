@@ -18,7 +18,7 @@
 #' @importFrom leaflet addProviderTiles
 #' @importFrom leaflet leaflet
 #' @import dplyr
-#' @example 
+#' @examples
 #' \dontrun{
 #' explore_model()
 #' }

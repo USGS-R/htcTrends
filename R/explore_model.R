@@ -4,10 +4,11 @@
 #' 
 #' @param browse use browser for graph rendering
 #' @export
-#' @import shiny
+#' @importFrom shiny runApp
 #' @import sbtools
 #' @import smwrGraphs
 #' @import usgsEGRET
+#' @importFrom DT datatable
 #' @importFrom leaflet addLegend
 #' @importFrom leaflet addCircles
 #' @importFrom leaflet clearControls

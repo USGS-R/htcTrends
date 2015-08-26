@@ -61,6 +61,11 @@ shinyUI(
                           column(9,
                                  leaflet::leafletOutput("mymap"))
                         )),
+               tabPanel("MetaData",
+                        fluidRow(column(1),
+                                 column(11,
+                                        DT::dataTableOutput('metaData')))
+                        ),
                tabPanel("Flow History",
                         fluidRow(
                           column(3,

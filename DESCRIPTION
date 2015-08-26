@@ -15,9 +15,10 @@ Copyright: This software is in the public domain because it contains materials
 Depends:
     R (>= 3.0)
 Imports:
-    sbtools,
+    sbtools (>= 0.11.6),
     shiny,
-    leaflet,
+    leaflet (>= 1.0.0),
     usgsEGRET,
     smwrGraphs,
-    dplyr
+    dplyr,
+    DT (>= 0.1)

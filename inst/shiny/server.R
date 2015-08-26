@@ -3,6 +3,7 @@ library(smwrGraphs)
 library(sbtools)
 library(leaflet)
 library(dplyr)
+library(DT)
 
 # Fix in sbtools will allow this to work, in the meantime, it's in extdata:
 # rawDataID <- "555a0a81e4b0a92fa7e9f3aa"
@@ -255,6 +256,22 @@ shinyServer(function(input, output) {
     } else {
       HTML("")
     }
+  })
+  
+  output$metaData <- DT::renderDataTable({
+    
+    eList <- eList()
+    
+    INFO <- eList_Start$INFO
+    
+    flippedTable <- data.frame(t(INFO[,c("station.nm","site.no","agency.cd",
+                                         "dec.lat.va","dec.long.va","tz.cd",
+                                         "drainSqKm","shortName","param.nm",
+                                         "param.units","paramShortName",
+                                         "paramNumber")]))
+    
+    DT::datatable(flippedTable, colnames = "",
+                  options = list(pageLength = nrow(flippedTable)))
   })
   
   output$modelText <- renderUI({

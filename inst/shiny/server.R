@@ -28,10 +28,7 @@ shinyServer(function(input, output, session) {
   
   eList_Start <- eventReactive(input$getData, {
     
-    click <- input$mymap_marker_click
-    if(is.null(click))
-      return()
-    id <- click$id
+    id <- idText()
     
     x <- query_item_identifier(scheme='naqwa', type = 'data', key = id)
     
@@ -838,8 +835,7 @@ shinyServer(function(input, output, session) {
         return
       }
       genInfo <- choseData()
-      text <- paste(genInfo$paramShortName[as.integer(tableClick[length(tableClick)])],
-                    genInfo$shortName[as.integer(tableClick[length(tableClick)])],sep="_")
+      text <- genInfo$ID[as.integer(tableClick[length(tableClick)])]
     }    
     
     

@@ -358,7 +358,7 @@ shinyServer(function(input, output, session) {
     
     names(genInfo) <- c("paramShortName","shortName","drainSqKm",legendTitle)
     
-    genInfoDT <- DT::datatable(genInfo, rownames = FALSE)
+    genInfoDT <- DT::datatable(genInfo, selection = "single")
     genInfoDT <- formatRound(genInfoDT, legendTitle, 2) 
     genInfoDT
     
@@ -752,7 +752,6 @@ shinyServer(function(input, output, session) {
                         "2002-2012" = subData[subData$yearStart %in% c(2000:2005),])
     }
     
-    
     if(nrow(subData) > 0){
       
         subData <- subData[!is.na(subData$yearStart),]
@@ -825,13 +824,32 @@ shinyServer(function(input, output, session) {
 
   })
   
-  output$Click_text<-renderText({
-    click <- input$mymap_marker_click
-    if(is.null(click))
-      return()
-    text<-paste("ID: ", click$id)
+  idText <- reactive({
     
-    HTML(paste0("<h5>",text,"</h5>"))
+    if(input$tabs == "Map"){
+      click <- input$mymap_marker_click
+      if(is.null(click)){
+        return  
+      }   
+      text<-click$id   
+    } else {
+      tableClick <- input$modelDataToChose_rows_selected
+      if(is.null(tableClick)){
+        return
+      }
+      genInfo <- choseData()
+      text <- paste(genInfo$paramShortName[as.integer(tableClick[length(tableClick)])],
+                    genInfo$shortName[as.integer(tableClick[length(tableClick)])],sep="_")
+    }    
+    
+    
+    text
+    
+  })
+  
+  output$Click_text<-renderText({
+    
+    HTML(paste0("<h5>",idText(),"</h5>"))
     
   })
 

@@ -60,7 +60,7 @@ shinyUI(
                               htmlOutput("Click_text"),
                               actionButton("getData", "Get Data")),
                        column(9,
-                              tabsetPanel(
+                              tabsetPanel(id = "tabs",
                                 tabPanel("Map",
                                   leaflet::leafletOutput("mymap")),
                               tabPanel("Table",

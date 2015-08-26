@@ -1,6 +1,6 @@
 shinyUI(
   fluidPage(
-    h2("EGRET Exploration"),
+    h2("NAWQA Trends Exploration"),
     fluidRow(fileInput("data", "Load EGRET object")),
     fluidRow(
       column(3, h3("Period of Analysis:")),

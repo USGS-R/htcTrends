@@ -649,6 +649,7 @@ shinyServer(function(input, output) {
     if(nrow(subData) > 0){
       
       subData <- subData[!is.na(subData$yearStart),]
+      subData$ID <-  paste(as.character(subData$paramShortName),subData$Site_no,sep="_")
       
       if(fluxOrConc == "Flux"){
         if(up == "Up"){
@@ -681,9 +682,8 @@ shinyServer(function(input, output) {
       leafletProxy("mymap", data=subData) %>%
         clearMarkers() %>%
         clearControls() %>%
-        clearPopups() %>%
         addCircleMarkers(lat=~dec_lat_va, lng=~dec_long_va, 
-                   # popup=paste0('<b>',as.character(subData$station_nm),"</b>") ,
+                         layerId = ~ID,
                    fillColor = ~pal(colData), 
                    # weight=1,
                    radius=3,
@@ -706,7 +706,7 @@ shinyServer(function(input, output) {
     click<-input$mymap_marker_click
     if(is.null(click))
       return()
-    text<-paste("Lattitude ", click$lat, "Longtitude ", click$lng)
+    text<-paste("ID: ", click$id)
     
     output$Click_text<-renderText({
       HTML(paste0("<h5>",text,"</h5>"))

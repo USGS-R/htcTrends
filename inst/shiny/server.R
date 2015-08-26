@@ -68,7 +68,7 @@ shinyServer(function(input, output, session) {
     
   })
   
-  output$flowPlotsOut <- renderPlot({ 
+  flowPlotStuff <- reactive({
     
     eList <- eList()
     
@@ -89,9 +89,7 @@ shinyServer(function(input, output, session) {
     } else {
       logScale = as.logical(as.integer(input$logScaleFlow))
     }
-    
-    setPNG()
-    
+
     switch(input$flowPlots,
            "plotFlowSingle" = plotFlowSingle(eList, istat=stat, qUnit = qUnit, USGSstyle = TRUE),
            "plotSDLogQ" = plotSDLogQ(eList, USGSstyle = TRUE),
@@ -100,9 +98,28 @@ shinyServer(function(input, output, session) {
            "plotFourStats" = plotFourStats(eList, qUnit = qUnit)
            
     )
+    
+    setPDF(basename="plot", layout = "landscape")
+    switch(input$flowPlots,
+           "plotFlowSingle" = plotFlowSingle(eList, istat=stat, qUnit = qUnit, USGSstyle = TRUE),
+           "plotSDLogQ" = plotSDLogQ(eList, USGSstyle = TRUE),
+           "plotQTimeDaily" = plotQTimeDaily(eList, qUnit = qUnit, logScale = logScale),
+           "plotFour" = plotFour(eList, qUnit = qUnit),
+           "plotFourStats" = plotFourStats(eList, qUnit = qUnit)
+           
+    )
+    graphics.off()
+    
+  })
+
+  output$flowPlotsOut <- renderPlot({ 
+    setPNG()
+    flowPlotStuff()
+    graphics.off()    
   })
   
-  output$dataPlotsOut <- renderPlot({ 
+  
+  dataPlotStuff <- reactive({
     
     eList <- eList()
     
@@ -118,8 +135,6 @@ shinyServer(function(input, output, session) {
       logScale = as.logical(as.integer(input$logScaleData))
     }
     
-    setPNG()
-    
     switch(input$dataPlots,
            "boxConcMonth" = boxConcMonth(eList, logScale = logScale, USGSstyle = TRUE),
            "boxQTwice" = boxQTwice(eList, qUnit = qUnit, USGSstyle = TRUE),
@@ -128,8 +143,26 @@ shinyServer(function(input, output, session) {
            "multiPlotDataOverview" = multiPlotDataOverview(eList, qUnit = qUnit, USGSstyle = TRUE)
            
     )
+    
+    setPDF(basename="plot", layout = "landscape")
+    switch(input$dataPlots,
+           "boxConcMonth" = boxConcMonth(eList, logScale = logScale, USGSstyle = TRUE),
+           "boxQTwice" = boxQTwice(eList, qUnit = qUnit, USGSstyle = TRUE),
+           "plotConcTime" = plotConcTime(eList, logScale = logScale, USGSstyle = TRUE),
+           "plotConcQ" = plotConcQ(eList, qUnit = qUnit, logScale = logScale, USGSstyle = TRUE),
+           "multiPlotDataOverview" = multiPlotDataOverview(eList, qUnit = qUnit, USGSstyle = TRUE)
+           
+    )
+    graphics.off()
+    
   })
   
+  output$dataPlotsOut <- renderPlot({ 
+    setPNG()
+    dataPlotStuff()
+    graphics.off()  
+  })
+
   modelPlotStuff <- reactive({
     
     eList <- eList()
@@ -268,17 +301,28 @@ shinyServer(function(input, output, session) {
   })
   
   output$downloadModelPlot <- downloadHandler(
-    
-    # This function returns a string which tells the client
-    # browser what name to use when saving the file.
     filename = function() {
       paste(input$modelPlots, "pdf", sep = ".")
     },
-    
-    # This function should write data to a file given to it by
-    # the argument 'file'.
     content = function(file) {
-    
+      file.copy("plot.pdf", file)
+    }
+  )
+  
+  output$downloadDataPlot <- downloadHandler(
+    filename = function() {
+      paste(input$dataPlots, "pdf", sep = ".")
+    },
+    content = function(file) {
+      file.copy("plot.pdf", file)
+    }
+  )
+  
+  output$downloadFlowPlot <- downloadHandler(
+    filename = function() {
+      paste(input$flowPlots, "pdf", sep = ".")
+    },
+    content = function(file) {
       file.copy("plot.pdf", file)
     }
   )

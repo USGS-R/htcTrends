@@ -8,7 +8,7 @@ library(DT)
 # Fix in sbtools will allow this to work, in the meantime, it's in extdata:
 # rawDataID <- "555a0a81e4b0a92fa7e9f3aa"
 # 
-# tempFolder <- tempdir()
+tempFolder <- tempdir()
 # 
 # item_file_download(rawDataID, names='Round1_INFO_v3.csv',
 #                    destinations = file.path(tempFolder,'Round1_INFO_v3.csv'), 
@@ -27,10 +27,30 @@ genInfo <- read.csv(file.path(system.file("extdata", package="htcTrends"),'Round
 
 eList_Start <- Choptank_eList
 
+topFolderID <- "5522f8dae4b027f0aee3d0cb"
 
-shinyServer(function(input, output) {
+shinyServer(function(input, output, session) {
+  
+  eList_Start <- eventReactive(input$getData, {
+    
+    click <- input$mymap_marker_click
+    if(is.null(click))
+      return()
+    id <- click$id
+    
+    x <- query_item_identifier(scheme='naqwa', type = 'data', key = id)
+    
+    item_file_download(x$id, names="eList.rds",
+                       destinations = file.path(tempFolder,"eList.rds"), 
+                       overwrite_file=TRUE) 
+    
+    eList_Start <- readRDS(file.path(tempFolder,"eList.rds"))
+    
+  })
   
   eList <- reactive({
+
+    eList_Start <- eList_Start()
     
     if(is.null(input$paStart)){
       paStart <- 10
@@ -43,35 +63,7 @@ shinyServer(function(input, output) {
     } else {
       paLong = as.integer(input$paLong)
     }
-    
-    if(!is.null(input$data)){
-      path <- input$data$datapath
-      fileName <- input$data$name
-      
-      extension <- strsplit(fileName, "\\.")[[1]][2]
-      fileName <- strsplit(fileName, "\\.")[[1]][1]
-      
-      if(extension == "rds"){
-        eList_Start <- readRDS(input$data$datapath)
-      } else {
-        #Remove old eList:
-        for ( obj in ls() ) { 
-          if(class(get(obj)) == "egret"){
-            rm(list=as.character(obj))
-          } 
-        }
-        #Load new:
-        load(input$data$datapath)
-        #Assign to eList_Start
-        for ( obj in ls() ) { 
-          if(class(get(obj)) == "egret"){
-            assign("eList_Start", get(obj))
-            break
-          }
-        }
-      }
-    }
-    
+
     eList <- setPA(eList_Start, paStart, paLong)
     
   })
@@ -138,7 +130,7 @@ shinyServer(function(input, output) {
     )
   })
   
-  output$modelPlotsOut <- renderPlot({
+  modelPlotStuff <- reactive({
     
     eList <- eList()
     
@@ -219,9 +211,7 @@ shinyServer(function(input, output) {
     } else {
       maxDiff = as.integer(input$maxDiff)
     }
-    
-    setPNG()
-    
+
     switch(input$modelPlots,
            "plotConcTimeDaily" = plotConcTimeDaily(eList),
            "plotFluxTimeDaily" = plotFluxTimeDaily(eList, fluxUnit=fluxUnit),
@@ -243,7 +233,55 @@ shinyServer(function(input, output) {
            "plotDiffContours" = plotDiffContours(eList, year0=yearStart,year1 = yearEnd, maxDiff = maxDiff,
                                                  qUnit=qUnit,qBottom = qLow, qTop=qHigh)
     )
+    
+    setPDF(basename="plot", layout = "landscape")
+      switch(input$modelPlots,
+             "plotConcTimeDaily" = plotConcTimeDaily(eList),
+             "plotFluxTimeDaily" = plotFluxTimeDaily(eList, fluxUnit=fluxUnit),
+             "plotConcPred" = plotConcPred(eList, logScale = logScale, USGSstyle = TRUE),
+             "plotFluxPred" = plotFluxPred(eList, fluxUnit=fluxUnit, USGSstyle = TRUE),
+             "plotResidPred" = plotResidPred(eList, USGSstyle = TRUE),
+             "plotResidQ" = plotResidQ(eList, qUnit=qUnit, USGSstyle = TRUE),
+             "plotResidTime" = plotResidTime(eList, USGSstyle = TRUE),
+             "boxResidMonth" = boxResidMonth(eList, USGSstyle = TRUE),
+             "boxConcThree" = boxConcThree(eList, USGSstyle = TRUE),
+             "plotConcHist" = plotConcHist(eList, USGSstyle = TRUE),
+             "plotFluxHist" = plotFluxHist(eList, fluxUnit=fluxUnit, USGSstyle = TRUE),
+             "plotConcQSmooth" = plotConcQSmooth(eList, date1=date1,date2=date2, date3=date3,qLow=qLow,qHigh=qHigh),
+             "plotConcTimeSmooth" = plotConcTimeSmooth(eList, q1=qLow, q2=qMid, q3=qHigh, logScale = logScale,
+                                                       centerDate=centerDate,yearStart=yearStart, yearEnd=yearEnd),
+             "fluxBiasMulti" = fluxBiasMulti(eList, fluxUnit=fluxUnit, qUnit=qUnit, USGSstyle = TRUE),
+             "plotContours" = plotContours(eList, qUnit=qUnit,yearStart = yearStart, yearEnd = yearEnd,
+                                           qBottom = qLow, qTop=qHigh),
+             "plotDiffContours" = plotDiffContours(eList, year0=yearStart,year1 = yearEnd, maxDiff = maxDiff,
+                                                   qUnit=qUnit,qBottom = qLow, qTop=qHigh)
+      )
+    graphics.off()
+    
   })
+  
+  output$modelPlotsOut <- renderPlot({
+    setPNG()
+    modelPlotStuff()
+    graphics.off()
+  
+  })
+  
+  output$downloadModelPlot <- downloadHandler(
+    
+    # This function returns a string which tells the client
+    # browser what name to use when saving the file.
+    filename = function() {
+      paste(input$modelPlots, "pdf", sep = ".")
+    },
+    
+    # This function should write data to a file given to it by
+    # the argument 'file'.
+    content = function(file) {
+    
+      file.copy("plot.pdf", file)
+    }
+  )
   
   output$SampleText <- renderUI({
     
@@ -262,12 +300,12 @@ shinyServer(function(input, output) {
     
     eList <- eList()
     
-    INFO <- eList_Start$INFO
+    INFO <- eList$INFO
     
-    flippedTable <- data.frame(t(INFO[,c("station.nm","site.no","agency.cd",
-                                         "dec.lat.va","dec.long.va","tz.cd",
-                                         "drainSqKm","shortName","param.nm",
-                                         "param.units","paramShortName",
+    flippedTable <- data.frame(t(INFO[,names(INFO) %in% c("station_nm","site_no","agency_cd",
+                                         "dec_lat_va","dec_long_va","tz_cd",
+                                         "drainSqKm","shortName","param_nm",
+                                         "param_units","paramShortName",
                                          "paramNumber")]))
     
     DT::datatable(flippedTable, colnames = "",
@@ -720,17 +758,28 @@ shinyServer(function(input, output) {
         clearPopups() 
     }
 
-    click<-input$mymap_marker_click
+  })
+  
+  output$Click_text<-renderText({
+    click <- input$mymap_marker_click
     if(is.null(click))
       return()
     text<-paste("ID: ", click$id)
     
-    output$Click_text<-renderText({
-      HTML(paste0("<h5>",text,"</h5>"))
-    })
+    HTML(paste0("<h5>",text,"</h5>"))
     
   })
 
+  output$dataAvailable <- renderText({
+    
+    eList <- eList()
+    
+    INFO <- eList$INFO
+    
+    HTML(paste0("<h4>Data from sciencebase: ",INFO$station_nm,"</h4>"))
+    
+  })
   
+
   
 })

@@ -18,6 +18,10 @@
 #' @importFrom leaflet addProviderTiles
 #' @importFrom leaflet leaflet
 #' @import dplyr
+#' @example 
+#' \dontrun{
+#' explore_model()
+#' }
 explore_model <- function(browse=TRUE){
   if(is.null(current_session())) authenticate_sb()
   runApp(system.file('shiny',package='htcTrends'), launch.browser = browse)

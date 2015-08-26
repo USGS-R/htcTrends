@@ -1,7 +1,7 @@
 shinyUI(
   fluidPage(
     h2("NAWQA Trends Exploration"),
-    fluidRow(fileInput("data", "Load EGRET object")),
+    htmlOutput("dataAvailable"),
     fluidRow(
       column(3, h3("Period of Analysis:")),
       column(4,
@@ -57,7 +57,8 @@ shinyUI(
                                               choices = c("Conc","Flux")),
                                  radioButtons("up", label = "Trend", inline = TRUE,
                                               choices = c("Up", "Down")),
-                                 htmlOutput("Click_text")),
+                                 htmlOutput("Click_text"),
+                                 actionButton("getData", "Get Data")),
                           column(9,
                                  leaflet::leafletOutput("mymap"))
                         )),
@@ -115,7 +116,8 @@ shinyUI(
                                  h4("R Code:"),
                                  htmlOutput("modelCode")),
                           column(9,
-                                 plotOutput("modelPlotsOut"))
+                                 plotOutput("modelPlotsOut", width = "100%"),
+                                 downloadButton('downloadModelPlot', 'Download Plot'))
                         ))
              )),
       column(1)

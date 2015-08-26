@@ -56,7 +56,8 @@ shinyUI(
                                  radioButtons("flux", label = "", inline = TRUE,
                                               choices = c("Conc","Flux")),
                                  radioButtons("up", label = "Trend", inline = TRUE,
-                                              choices = c("Up", "Down"))),
+                                              choices = c("Up", "Down")),
+                                 htmlOutput("Click_text")),
                           column(9,
                                  leaflet::leafletOutput("mymap"))
                         )),

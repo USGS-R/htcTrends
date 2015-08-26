@@ -644,54 +644,76 @@ shinyServer(function(input, output) {
                         "1982-2012" = subData[subData$yearStart %in% c(1980:1985),],
                         "1992-2012" = subData[subData$yearStart %in% c(1990:1995),],
                         "2002-2012" = subData[subData$yearStart %in% c(2000:2005),])
-
     }
     
-    subData <- subData[!is.na(subData$yearStart),]
-    
-    if(fluxOrConc == "Flux"){
-      if(up == "Up"){
-        subData$colData <- subData$likeFUp
-        legendTitle <- "Flux is Upwards"
+    if(nrow(subData) > 0){
+      
+      subData <- subData[!is.na(subData$yearStart),]
+      
+      if(fluxOrConc == "Flux"){
+        if(up == "Up"){
+          subData$colData <- subData$likeFUp
+          legendTitle <- "Flux is Upwards"
+        } else {
+          subData$colData <- subData$likeFDown
+          legendTitle <- "Flux is Downwards"
+        }
       } else {
-        subData$colData <- subData$likeFDown
-        legendTitle <- "Flux is Downwards"
+        if(up == "Up"){
+          subData$colData <- subData$likeCUp
+          legendTitle <- "Conc is Upwards"
+        } else {
+          subData$colData <- subData$likeCDown
+          legendTitle <- "Conc is Downwards"
+        }
       }
+      
+      col_types <- c("darkblue","dodgerblue","green","yellow","orange","red","brown")
+      leg_vals <- unique(as.numeric(quantile(subData$colData, probs=c(0,0.01,0.1,0.25,0.5,0.75,0.9,.99,1), na.rm=TRUE)))
+      
+      if(length(leg_vals) > 1){
+        pal = colorBin(col_types, subData$colData, bins = leg_vals)
+      } else {
+        pal = colorBin(col_types, subData$colData, bins = c(0,leg_vals,1))
+      }
+      
+      
+      leafletProxy("mymap", data=subData) %>%
+        clearMarkers() %>%
+        clearControls() %>%
+        clearPopups() %>%
+        addCircleMarkers(lat=~dec_lat_va, lng=~dec_long_va, 
+                   # popup=paste0('<b>',as.character(subData$station_nm),"</b>") ,
+                   fillColor = ~pal(colData), 
+                   # weight=1,
+                   radius=3,
+                   stroke=FALSE,
+                   # color = "black",
+                   fillOpacity = 0.8, opacity = 0.8) %>%
+        addLegend(
+          position = 'bottomleft',
+          pal=pal,
+          values=~colData,
+          opacity = 0.8,
+          title = legendTitle)      
     } else {
-      if(up == "Up"){
-        subData$colData <- subData$likeCUp
-        legendTitle <- "Conc is Upwards"
-      } else {
-        subData$colData <- subData$likeCDown
-        legendTitle <- "Conc is Downwards"
-      }
+      leafletProxy("mymap", data=subData) %>%
+        clearMarkers() %>%
+        clearControls() %>%
+        clearPopups() 
     }
-    
-    col_types <- c("darkblue","dodgerblue","green","yellow","orange","red","brown")
-    leg_vals <- unique(as.numeric(quantile(subData$colData, probs=c(0,0.01,0.1,0.25,0.5,0.75,0.9,.99,1), na.rm=TRUE)))
-    
-    pal = colorBin(col_types, subData$colData, bins = leg_vals)
 
-    leafletProxy("mymap", data=subData) %>%
-      clearShapes() %>%
-      clearControls() %>%
-      addCircles(lat=~dec_lat_va, lng=~dec_long_va, 
-                 popup=paste0('<b>',as.character(subData$station_nm),"</b>") ,
-                 fillColor = ~pal(colData), 
-                 weight=1,
-                 radius=20000,
-                 color = "black",
-                 fillOpacity = 0.8, opacity = 0.8) %>%
-      addLegend(
-        position = 'bottomleft',
-        pal=pal,
-        values=~colData,
-        opacity = 0.8,
-        title = legendTitle)
+    click<-input$mymap_marker_click
+    if(is.null(click))
+      return()
+    text<-paste("Lattitude ", click$lat, "Longtitude ", click$lng)
     
+    output$Click_text<-renderText({
+      HTML(paste0("<h5>",text,"</h5>"))
+    })
     
   })
-  
+
   
   
 })

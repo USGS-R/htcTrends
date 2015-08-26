@@ -1,7 +1,7 @@
 Package: htcTrends
 Type: Package
 Title: htcTrends
-Version: 0.0.1
+Version: 0.0.2
 Date: 2015-07-31
 Authors@R: c(person("Laura", "DeCicco", role = c("aut","cre"),
     email = "ldecicco@usgs.gov"))

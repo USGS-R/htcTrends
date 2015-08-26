@@ -6,26 +6,21 @@ library(dplyr)
 library(DT)
 
 # Fix in sbtools will allow this to work, in the meantime, it's in extdata:
-# rawDataID <- "555a0a81e4b0a92fa7e9f3aa"
-# 
+rawDataID <- "555a0a81e4b0a92fa7e9f3aa"
+
 tempFolder <- tempdir()
-# 
-# item_file_download(rawDataID, names='Round1_INFO_v3.csv',
-#                    destinations = file.path(tempFolder,'Round1_INFO_v3.csv'), 
-#                    overwrite_file=TRUE)
-# 
-# genInfo <- read.csv(file.path(tempFolder,'Round1_INFO_v3.csv'))
-# 
-# item_file_download(rawDataID, names='bootOut.csv',
-#                    destinations = file.path(tempFolder,'bootOut.csv'), 
-#                    overwrite_file=TRUE)
-# 
-# bootOut <- read.csv(file.path(tempFolder,'bootOut.csv'))
 
-bootOut <- read.csv(file.path(system.file("extdata", package="htcTrends"),'bootOut.csv'))
-genInfo <- read.csv(file.path(system.file("extdata", package="htcTrends"),'Round1_INFO_v3.csv'))
+item_file_download(rawDataID, names='Round1_INFO_v3.csv',
+                   destinations = file.path(tempFolder,'Round1_INFO_v3.csv'), 
+                   overwrite_file=TRUE)
 
-eList_Start <- Choptank_eList
+genInfo <- read.csv(file.path(tempFolder,'Round1_INFO_v3.csv'))
+
+item_file_download(rawDataID, names='bootOut.csv',
+                   destinations = file.path(tempFolder,'bootOut.csv'), 
+                   overwrite_file=TRUE)
+
+bootOut <- read.csv(file.path(tempFolder,'bootOut.csv'))
 
 topFolderID <- "5522f8dae4b027f0aee3d0cb"
 
@@ -117,7 +112,6 @@ shinyServer(function(input, output, session) {
     flowPlotStuff()
     graphics.off()    
   })
-  
   
   dataPlotStuff <- reactive({
     
@@ -351,6 +345,22 @@ shinyServer(function(input, output, session) {
                                          "drainSqKm","shortName","param_nm",
                                          "param_units","paramShortName",
                                          "paramNumber")]))
+    
+    DT::datatable(flippedTable, colnames = "",
+                  options = list(pageLength = nrow(flippedTable)))
+  })
+  
+  output$modelDataToChose <- DT::renderDataTable({
+    
+    eList <- eList()
+    
+    INFO <- eList$INFO
+    
+    flippedTable <- data.frame(t(INFO[,names(INFO) %in% c("station_nm","site_no","agency_cd",
+                                                          "dec_lat_va","dec_long_va","tz_cd",
+                                                          "drainSqKm","shortName","param_nm",
+                                                          "param_units","paramShortName",
+                                                          "paramNumber")]))
     
     DT::datatable(flippedTable, colnames = "",
                   options = list(pageLength = nrow(flippedTable)))

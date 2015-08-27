@@ -3,7 +3,7 @@ shinyUI(
     h2("NAWQA Trends Exploration"),
     htmlOutput("dataAvailable"),
     fluidRow(
-      column(3, h4("Period of Analysis:")),
+      column(3, h4("Period of Analysis:", align = "right")),
       column(4,
              selectInput("paStart", label = "Starting Month", 
                          choices = c(month.name),
@@ -14,7 +14,7 @@ shinyUI(
                          selected = 12, multiple = FALSE))
     ),
     fluidRow(
-      column(3, h4("Units")),
+      column(3, h4("Units:", align = "right")),
       column(4,
              selectInput("fluxUnit", label = "Flux Units", 
                          choices = list("pounds/day" = 1,
@@ -58,7 +58,8 @@ shinyUI(
                               radioButtons("up", label = "Trend", inline = TRUE,
                                            choices = c("Up", "Down")),
                               htmlOutput("Click_text"),
-                              actionButton("getData", "Get Data")),
+                              actionButton("getData", "Get Data"),
+                              downloadButton('saveData', 'Save Data')),
                        column(9,
                               tabsetPanel(id = "tabs",
                                 tabPanel("Map",

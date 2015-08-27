@@ -305,6 +305,7 @@ shinyServer(function(input, output, session) {
       paste(input$dataPlots, "pdf", sep = ".")
     },
     content = function(file) {
+      
       file.copy("plot.pdf", file)
     }
   )
@@ -315,6 +316,16 @@ shinyServer(function(input, output, session) {
     },
     content = function(file) {
       file.copy("plot.pdf", file)
+    }
+  )
+  
+  output$saveData <- downloadHandler(
+    filename = function() {
+      paste("eList", "rds", sep = ".")
+    },
+    content = function(file) {
+      
+      file.copy(file.path(tempFolder,"eList.rds"), file)
     }
   )
   

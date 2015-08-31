@@ -42,20 +42,8 @@ shinyServer(function(input, output, session) {
   
   eList <- reactive({
 
-    if(!file.exists(file.path(tempFolder,"eList.rds"))){
-      id <- "Ammonia_01112900"
-      
-      x <- query_item_identifier(scheme='naqwa', type = 'data', key = id)
-      
-      item_file_download(x$id, names="eList.rds",
-                         destinations = file.path(tempFolder,"eList.rds"), 
-                         overwrite_file=TRUE) 
-      
-      eList_Start <- readRDS(file.path(tempFolder,"eList.rds"))
-    } else {
-      eList_Start <- eList_Start()      
-    }
-    
+    eList_Start <- eList_Start()      
+
     if(is.null(input$paStart)){
       paStart <- 10
     } else {
@@ -249,7 +237,7 @@ shinyServer(function(input, output, session) {
     if(is.null(input$maxDiff)){
       maxDiff = diff(range(eList$Sample$ConcAve))
     } else {
-      maxDiff = as.integer(input$maxDiff)
+      maxDiff = round(as.numeric(input$maxDiff),digits = 3)
     }
     
     contours <- pretty(c(min(eList$surfaces[,,3]), max(eList$surfaces[,,3])), n=5)
@@ -312,7 +300,7 @@ shinyServer(function(input, output, session) {
                                                        centerDate=centerDate,yearStart=yearStart, yearEnd=yearEnd),
              "fluxBiasMulti" = fluxBiasMulti(eList, fluxUnit=fluxUnit, qUnit=qUnit, USGSstyle = TRUE),
              "plotContours" = plotContours(eList, qUnit=qUnit,yearStart = yearStart, yearEnd = yearEnd,
-                                           qBottom = qLow, qTop=qHigh),
+                                           qBottom = qLow, qTop=qHigh,contourLevels = seq(from, to, length.out =by)),
              "plotDiffContours" = plotDiffContours(eList, year0=yearStart,year1 = yearEnd, maxDiff = maxDiff,
                                                    qUnit=qUnit,qBottom = qLow, qTop=qHigh)
       )

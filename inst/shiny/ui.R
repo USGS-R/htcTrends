@@ -1,6 +1,10 @@
 shinyUI(
   fluidPage(
     h2("NAWQA Trends Exploration"),
+    h4("Step 1: Explore the available data sets from the 'Choose Data' tab"),
+    h4("Step 2: Choose a data set from either the map or table, and click the 'Get Data' button to retrieve from sciencebase"),
+    h4("Step 3: Explore that data in the 'Analyze Data' tab"),
+    h4("Step 4: Click on the Download Plot button for properly formatted pdf graph output"),
     htmlOutput("dataAvailable"),
     fluidRow(
       column(3, h4("Period of Analysis:", align = "right")),
@@ -125,6 +129,9 @@ shinyUI(
                                       uiOutput("yearEnd"),
                                       uiOutput("centerDate"),
                                       uiOutput("maxDiff"),
+                                      uiOutput("from"),
+                                      uiOutput("to"),
+                                      uiOutput("by"),
                                       h4("R Code:"),
                                       htmlOutput("modelCode")),
                                column(9,

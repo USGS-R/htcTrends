@@ -1,8 +1,8 @@
 Package: htcTrends
 Type: Package
 Title: htcTrends
-Version: 0.0.2
-Date: 2015-07-31
+Version: 0.0.3
+Date: 2015-08-31
 Authors@R: c(person("Laura", "DeCicco", role = c("aut","cre"),
     email = "ldecicco@usgs.gov"))
 Description: Tools for working and exploring NAWQA trends data.

@@ -585,8 +585,8 @@ shinyServer(function(input, output, session) {
                       
     )
     
-    HTML(paste0("<h5>setPA(eList, paStart = ",paStart, ", paLong = ", paLong,")</h5>",
-                "<h5>",outText,"</h5>"))
+    HTML(paste0("setPA(eList, paStart = ",paStart, ", paLong = ", paLong,")\n",
+                outText))
     
   })
   
@@ -625,8 +625,8 @@ shinyServer(function(input, output, session) {
                       
     )
     
-    HTML(paste0("<h5>setPA(eList, paStart = ",paStart, ", paLong = ", paLong,")</h5>",
-                "<h5>",outText,"</h5>"))
+    HTML(paste0("setPA(eList, paStart = ",paStart, ", paLong = ", paLong,")\n",
+                outText))
     
   })
   
@@ -763,15 +763,17 @@ shinyServer(function(input, output, session) {
                                                   yearEnd,", qBottom = ",qLow,", qTop = ",qHigh, ", maxDiff = ",maxDiff,")")
     )
     
-    HTML(paste0("<h5>setPA(eList, paStart = ",paStart, ", paLong = ", paLong,")</h5>",
-                "<h5>",outText,"</h5>"))
+    HTML(paste0("setPA(eList, paStart = ",paStart, ", paLong = ", paLong,")\n",
+                outText))
     
   })
   
   output$mymap <- leaflet::renderLeaflet({
     
     leaflet() %>%
-      addProviderTiles("Esri.WorldPhysical") %>%
+      # addProviderTiles("Esri.WorldPhysical") %>%
+      addProviderTiles("CartoDB.Positron") %>%
+      # addProviderTiles("Esri.WorldStreetMap") %>%
       setView(lng = -99.5, lat = 40, zoom=4) 
     
   })

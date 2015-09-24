@@ -7,47 +7,6 @@ shinyUI(
     h4("Step 4: Click on the Download Plot button for properly formatted pdf graph output"),
     htmlOutput("dataAvailable"),
     fluidRow(
-      column(3, h4("Period of Analysis:", align = "right")),
-      column(4,
-             selectInput("paStart", label = "Starting Month", 
-                         choices = c(month.name),
-                         selected = "October", multiple = FALSE)),
-      column(4,
-             selectInput("paLong", label = "Number of Months", 
-                         choices = 1:12,
-                         selected = 12, multiple = FALSE))
-    ),
-    fluidRow(
-      column(3, h4("Units:", align = "right")),
-      column(4,
-             selectInput("fluxUnit", label = "Flux Units", 
-                         choices = list("pounds/day" = 1,
-                                        "tons/day" = 2,
-                                        "kg/day" = 3,
-                                        "thousands of kg/day" = 4,
-                                        "tons/year" = 5,
-                                        "thousands of tons/year" = 6,
-                                        "millions of tons/year" = 7,
-                                        "thousands of kg/year" = 8,
-                                        "millions of kg/year" = 9,
-                                        "billions of kg/year" = 10,
-                                        "thousands of tons/day" = 11,
-                                        "millions of kg/day" = 12,
-                                        "kg/year" = 13),
-                         selected=3, multiple = FALSE)
-             
-      ),
-      column(4,
-             selectInput("qUnit", label = "Flow Units", 
-                         choices = list("Cubic Feet per Second" = 1,
-                                        "Cubic Meters per Second" = 2,
-                                        "Thousand Cubic Feet per Second" = 3,
-                                        "Thousand Cubic Meters per Second" = 4),
-                         selected=1, multiple = FALSE)
-             
-      )
-    ),
-    fluidRow(
       column(11,
              tabsetPanel(
                tabPanel("Choose Data",
@@ -75,6 +34,47 @@ shinyUI(
                               ))
                      ))),
                tabPanel("Analyze Data",
+                        fluidRow(
+                          column(3, h5("Period of Analysis:", align = "right", style = "margin-top: 40px")),
+                          column(3,
+                                 selectInput("paStart", label = "Starting Month", 
+                                             choices = c(month.name),
+                                             selected = "October", multiple = FALSE)),
+                          column(4,
+                                 selectInput("paLong", label = "Number of Months", 
+                                             choices = 1:12,
+                                             selected = 12, multiple = FALSE))
+                        ),
+                        fluidRow(
+                          column(3, h5("Units:", align = "right", style = "margin-top: 40px")),
+                          column(3,
+                                 selectInput("fluxUnit", label = "Flux Units", 
+                                             choices = list("pounds/day" = 1,
+                                                            "tons/day" = 2,
+                                                            "kg/day" = 3,
+                                                            "thousands of kg/day" = 4,
+                                                            "tons/year" = 5,
+                                                            "thousands of tons/year" = 6,
+                                                            "millions of tons/year" = 7,
+                                                            "thousands of kg/year" = 8,
+                                                            "millions of kg/year" = 9,
+                                                            "billions of kg/year" = 10,
+                                                            "thousands of tons/day" = 11,
+                                                            "millions of kg/day" = 12,
+                                                            "kg/year" = 13),
+                                             selected=3, multiple = FALSE)
+                                 
+                          ),
+                          column(4,
+                                 selectInput("qUnit", label = "Flow Units", 
+                                             choices = list("Cubic Feet per Second" = 1,
+                                                            "Cubic Meters per Second" = 2,
+                                                            "Thousand Cubic Feet per Second" = 3,
+                                                            "Thousand Cubic Meters per Second" = 4),
+                                             selected=1, multiple = FALSE)
+                                 
+                          )
+                        ),
                   tabsetPanel(
                     tabPanel("MetaData",
                              fluidRow(column(1),

@@ -10,6 +10,8 @@ rawDataID <- "555a0a81e4b0a92fa7e9f3aa"
 
 tempFolder <- tempdir()
 
+source("config.R")
+
 item_file_download(rawDataID, names='Round1_INFO_v3.csv',
                    destinations = file.path(tempFolder,'Round1_INFO_v3.csv'), 
                    overwrite_file=TRUE)
@@ -936,7 +938,7 @@ shinyServer(function(input, output, session) {
 
     INFO <- eList$INFO
     
-    HTML(paste0("<h4>Data from sciencebase: ",INFO$station_nm,"</h4>"))      
+    HTML(paste0("<h4>Data retrieved from sciencebase: <bold>",INFO$station_nm,"</bold></h4>"))      
     
   })
   

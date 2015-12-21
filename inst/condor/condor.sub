@@ -1,0 +1,18 @@
+executable=simple.sh
+arguments=trendsCondor.R $(Process)
+transfer_input_files=trendsCondor_EXTRA_remaining.R,unzip,.Renviron,packages.zip,flowData.RData, notFinished.rds, subData.RData
+universe = vanilla
+output = out/$(Process).out
+error = err/$(Process).err
+log = log/$(Process).log
+stream_output = True
+stream_error = True
+requirements = (TARGET.Arch == "X86_64") && (TARGET.OpSys == "LINUX") && (TARGET.OpSysVer == 701)
+request_cpus = 2
+should_transfer_files = YES
+#+WantFlocking = true
+when_to_transfer_output = ON_EXIT
+notification = never
+transfer_output_files = trends.zip
+transfer_output_remaps = "trends.zip = results/trends_$(Process).zip"
+queue 363

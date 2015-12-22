@@ -22,3 +22,6 @@ sampleDataTotal$date <- as.Date(parse_date_time(sampleDataTotal$date, c("%m/%d/%
 
 saveRDS(infoDataTotal, file="infoData.rds")
 saveRDS(sampleDataTotal, file="sampleData.rds")
+
+
+tools::write_PACKAGES("inst/condor/packages/src/contrib",type="source", verbose=TRUE)

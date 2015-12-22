@@ -20,7 +20,8 @@ suppressPackageStartupMessages(library(sbtools, quietly = TRUE, lib.loc = 'rLibs
 # mainPath <- "D:/LADData/NAWQATrends/CondorPractice/"
 # setwd(mainPath)
 
-topFolderID <- "5522f8dae4b027f0aee3d0cb" # Trends
+# topFolderID <- "5522f8dae4b027f0aee3d0cb" # Phase I
+topFolderID <- "5679a0e9e4b0da412f4fc2b7" #Phase II
 istatNames <- c("Min1Day","Min7Days","Min30Days","Median","Mean","Max30Days","Max7Days","Max1Day")
 
 infoDataTotal <- readRDS("infoData.rds")
@@ -89,17 +90,14 @@ flowDataTotal <- readRDS("flowData.rds")
   source("D:/LADData/RCode/htcTrends/inst/shiny/config.R")
   
   folderID <- item_create(topFolderID, 
-                          title=paste(parameter,shortName,sep="_"),
-                          session=session) 
+                          title=paste(parameter,shortName,sep="_")) 
 
 #   dir.create(file.path(path, i), showWarnings = FALSE)
 #   setwd(file.path(path, i))
   saveRDS(eList, file="eList.rds")
   
   fileStuff <- item_append_files(folderID,
-                                 files = file.path(getwd(),"eList.rds"),
-                                 session = session
-  )
+                                 files = file.path(getwd(),"eList.rds"))
 
   rename <- file.rename("eList.rds", paste0("eList","_",INFO$constitAbbrev,"_",sampleSite,".rds"))
   
@@ -112,8 +110,7 @@ flowDataTotal <- readRDS("flowData.rds")
   
   write.csv(tableResultData, "tableResults.csv", row.names=FALSE)
   x <- item_append_files(folderID,
-                         files = file.path(getwd(),"tableResults.csv"),
-                         session = session)
+                         files = file.path(getwd(),"tableResults.csv"))
 
   rename <- file.rename("tableResults.csv", paste0("tableResults","_",INFO$constitAbbrev,"_",sampleSite,".csv"))
 
@@ -128,14 +125,10 @@ flowDataTotal <- readRDS("flowData.rds")
   write.csv(fluxTable, "tableChangeFlux.csv", row.names=FALSE)
   write.csv(concTable, "tableChangeConc.csv", row.names=FALSE)
   x <- item_append_files(folderID,
-                         files = file.path(getwd(),"tableChangeFlux.csv"),
-                         session = session)
-#   x <- suppressMessages(item_update_identifier(folderID, 'naqwa', 
-#                                                'data', paste(parameter,shortName,sep="_"), 
-#                                                session ))
+                         files = file.path(getwd(),"tableChangeFlux.csv"))
+
   x <- item_append_files(folderID,
-                         files = file.path(getwd(),"tableChangeConc.csv"),
-                         session = session)
+                         files = file.path(getwd(),"tableChangeConc.csv"))
 
   rename <- file.rename("tableChangeConc.csv", paste0("tableChangeConc","_",INFO$constitAbbrev,"_",sampleSite,".csv"))
   rename <- file.rename("tableChangeFlux.csv", paste0("tableChangeFlux","_",INFO$constitAbbrev,"_",sampleSite,".csv"))

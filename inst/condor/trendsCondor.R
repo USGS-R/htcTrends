@@ -1,19 +1,21 @@
 #Setup libraries
 # dir.create('rLibs')
 # 
+# install.packages(c("EGRETci","usgsEGRET","smwrGraphs","reshape2","sbtools"),
+#                  repo="file:packages",type="source",
+#                  dependencies=c("Depends","Imports"), lib='rLibs')
 install.packages(c("EGRETci","usgsEGRET","smwrGraphs","reshape2","sbtools"),
-                 repo="file:packages",type="source",
+                 repo="file:inst/condor/packages",type="source",
                  dependencies=c("Depends","Imports"), lib='rLibs')
-
 args <- commandArgs(trailingOnly = TRUE)
 
 i <- as.numeric(args[1])+1 #Should be 1
 
-suppressPackageStartupMessages(library(EGRETci, quietly = TRUE))
-suppressPackageStartupMessages(library(usgsEGRET, quietly = TRUE))
-suppressPackageStartupMessages(library(smwrGraphs, quietly = TRUE))
-suppressPackageStartupMessages(library(reshape2, quietly = TRUE))
-suppressPackageStartupMessages(library(sbtools, quietly = TRUE))
+suppressPackageStartupMessages(library(EGRETci, quietly = TRUE, lib.loc = 'rLibs'))
+suppressPackageStartupMessages(library(usgsEGRET, quietly = TRUE, lib.loc = 'rLibs'))
+suppressPackageStartupMessages(library(smwrGraphs, quietly = TRUE, lib.loc = 'rLibs'))
+suppressPackageStartupMessages(library(reshape2, quietly = TRUE, lib.loc = 'rLibs'))
+suppressPackageStartupMessages(library(sbtools, quietly = TRUE, lib.loc = 'rLibs'))
 
 # mainPath <- "D:/LADData/NAWQATrends/CondorPractice/"
 # setwd(mainPath)
@@ -21,11 +23,9 @@ suppressPackageStartupMessages(library(sbtools, quietly = TRUE))
 topFolderID <- "5522f8dae4b027f0aee3d0cb" # Trends
 istatNames <- c("Min1Day","Min7Days","Min30Days","Median","Mean","Max30Days","Max7Days","Max1Day")
 
-# infoDataTotal <- readRDS("infoData.RData")
-infoDataTotal <-readRDS("notFinished.rds")
-infoDataTotal$blockLength <- rep(200, nrow(infoDataTotal))
-sampleDataTotal <- readRDS("subData.RData")
-flowDataTotal <- readRDS("flowData.RData")
+infoDataTotal <- readRDS("infoData.rds")
+sampleDataTotal <- readRDS("sampleData.rds")
+flowDataTotal <- readRDS("flowData.rds")
 
 
 # path <- "D:/LADData/NAWQATrends/CondorPractice/results_May19/newResults"
@@ -86,7 +86,7 @@ flowDataTotal <- readRDS("flowData.RData")
     eList <- blankTime(eList, INFO$blank_start2, INFO$blank_end2)
   }
   
-  session <- authenticate_sb("midcondor@gmail.com", password = "ukC9py<s6Q(F")
+  session <- authenticate_sb("midcondor@gmail.com", password = "")
   
   folderID <- item_create(topFolderID, 
                           title=paste(parameter,shortName,sep="_"),

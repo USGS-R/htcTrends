@@ -86,7 +86,7 @@ flowDataTotal <- readRDS("flowData.rds")
     eList <- blankTime(eList, INFO$blank_start2, INFO$blank_end2)
   }
   
-  session <- authenticate_sb("midcondor@gmail.com", password = "")
+  source("D:/LADData/RCode/htcTrends/inst/shiny/config.R")
   
   folderID <- item_create(topFolderID, 
                           title=paste(parameter,shortName,sep="_"),

@@ -143,7 +143,7 @@ flowDataTotal <- readRDS("flowData.rds")
                          session = session)
 
   setPDF(basename="fluxBiasMulti",layout = "landscape")
-  fluxBiasMulti(eList, USGSstyle = TRUE)
+  fluxBiasMulti(eList, USGSstyle = TRUE, rResid=TRUE)
   graphics.off()
   x <- item_append_files(folderID,
                          files = file.path(getwd(),"fluxBiasMulti.pdf"),

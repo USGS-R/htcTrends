@@ -1,10 +1,9 @@
 Package: akima
 Version: 0.5-12
 Depends: R (>= 2.0.0)
-Imports: sp
 License: ACM | file LICENSE
 License_restricts_use: yes
-MD5sum: 3de882e84857ec04c25388d35bcf40db
+MD5sum: ed20e5a3e4c48f74450dc38cf41c867f
 NeedsCompilation: yes
 
 Package: binom

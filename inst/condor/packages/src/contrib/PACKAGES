@@ -38,8 +38,7 @@ NeedsCompilation: yes
 Package: EGRET
 Version: 2.4.1
 Depends: R (>= 3.0)
-Imports: survival, fields, lubridate, methods, utils, graphics, stats, grDevices,
-         truncnorm
+Imports: survival, fields, lubridate, methods, utils, graphics, stats, grDevices, truncnorm
 Suggests: xtable, knitr, rmarkdown, extrafont, testthat, rkt
 License: CC0
 MD5sum: c7a0f619be0f5d691df2fb19725bc9e1
@@ -204,6 +203,24 @@ License: CC0
 MD5sum: 8333b96a86b8c03fe5af2391e99291fb
 NeedsCompilation: no
 
+Package: smwrQW
+Version: 0.7.5
+Depends: smwrBase, smwrGraphs, smwrStats
+Imports: lubridate, methods, survival
+Suggests: smwrData, cluster, NADA, psych
+License: CC0
+MD5sum: 2dd84f3df61812c890ffdc93317a0417
+NeedsCompilation: yes
+
+Package: smwrStats
+Version: 0.7.2
+Depends: smwrBase (>= 1.0), smwrGraphs (>= 1.0)
+Imports: car, leaps, stats
+Suggests: smwrData (>= 1.0), dataRetrieval, testthat
+License: CC0
+MD5sum: 675c7cdee14b5876b60f5485905716d2
+NeedsCompilation: yes
+
 Package: spam
 Version: 1.3-0
 Depends: R (>= 3.0), grid
@@ -251,10 +268,10 @@ NeedsCompilation: yes
 Package: usgsEGRET
 Version: 0.0.4
 Depends: R (>= 3.0)
-Imports: survival, fields, lubridate, methods, smwrGraphs, utils, graphics, stats,
-         grDevices, truncnorm
+Imports: survival, fields, lubridate, methods, smwrGraphs, smwrQW, utils, graphics, stats,
+          grDevices, truncnorm
 Suggests: xtable, knitr, rmarkdown, extrafont, testthat, rkt
 License: CC0
-MD5sum: f25ca18070f26cf57f508faf09a8a935
+MD5sum: 2db982361b01005263a34a3f4d6d748e
 NeedsCompilation: no
 

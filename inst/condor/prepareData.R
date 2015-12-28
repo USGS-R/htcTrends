@@ -25,3 +25,24 @@ saveRDS(sampleDataTotal, file="sampleData.rds")
 
 
 tools::write_PACKAGES("inst/condor/packages/src/contrib",type="source", verbose=TRUE)
+
+sampleSite <- unique(infoDataTotal$Site_no)
+flowData <- data.frame(dateTime = as.Date(NA), value=as.numeric(NA), site=as.character(NA))
+flowData <- flowData[!is.na(flowData$value),]
+
+for(j in sampleSite){
+  flowFile <- paste0("Q_",j,".csv") 
+  totalPathFlow <- file.path(path,flowFile)
+  if(file.exists(totalPathFlow)){
+    flowDataTotal <- read_csv(totalPathFlow, 
+                              col_types = list(col_character(), col_character(), col_character(),
+                                               col_date(),col_number(), col_number()))
+  }
+  
+  subFlow <- flowDataTotal[,c("start_date","flow_scaled")]
+  subFlow$site <- rep(j, nrow(subFlow))
+  names(subFlow) <- c("dateTime","value","site")
+  subFlow <- subFlow[order(subFlow$dateTime),]
+  flowData <- rbind(flowData, subFlow)
+}
+saveRDS(flowData, file="flowData.rds")

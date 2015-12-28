@@ -87,6 +87,10 @@ flowDataTotal <- readRDS("flowData.rds")
     eList <- blankTime(eList, INFO$blank_start2, INFO$blank_end2)
   }
   
+  if(!is.na(INFO$blank_start3)){
+    eList <- blankTime(eList, INFO$blank_start3, INFO$blank_end3)
+  }
+  
   source("D:/LADData/RCode/htcTrends/inst/shiny/config.R")
   
   folderID <- item_create(topFolderID, 

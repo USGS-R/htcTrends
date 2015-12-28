@@ -55,9 +55,9 @@ NeedsCompilation: no
 
 Package: fields
 Version: 8.3-5
-Depends: R (>= 3.0), methods, spam, maps
+Depends: R (>= 3.0), methods, spam
 License: GPL (>= 2)
-MD5sum: e10b8c4776c2edb24e99cdea691f95b9
+MD5sum: 7191ff875ecb3306b24df9119e14414a
 NeedsCompilation: yes
 
 Package: httr

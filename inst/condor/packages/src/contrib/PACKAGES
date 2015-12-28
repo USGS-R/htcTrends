@@ -19,6 +19,15 @@ License: GPL (>= 2)
 MD5sum: fba16485a51b1ccd354abde5816b6bdd
 NeedsCompilation: yes
 
+Package: car
+Version: 2.1-1
+Depends: R (>= 3.2.0)
+Suggests: alr4, boot, coxme, leaps, lme4, lmtest, Matrix, MatrixModels, nlme, rgl (>=
+          0.93.960), sandwich, SparseM, survival, survey
+License: GPL (>= 2)
+MD5sum: af68cfa5cf41f9b3cf1d13817bf2a3ee
+NeedsCompilation: no
+
 Package: curl
 Version: 0.9.4
 Depends: R (>= 2.10.0)
@@ -85,6 +94,13 @@ License: Unlimited
 MD5sum: 746cdf26dec72004cf19978e87dcc982
 NeedsCompilation: yes
 
+Package: leaps
+Version: 2.9
+Suggests: biglm
+License: GPL (>= 2)
+MD5sum: ea03350869eeed25d64387402228ab09
+NeedsCompilation: no
+
 Package: lubridate
 Version: 1.5.0
 Depends: methods, R (>= 3.0.0)
@@ -134,6 +150,15 @@ LinkingTo: Rcpp
 Suggests: abind, testthat, tcltk, foreach, doParallel, itertools, iterators
 License: MIT + file LICENSE
 MD5sum: c5f658fac466ac01fca7d147eff22846
+NeedsCompilation: yes
+
+Package: quantreg
+Version: 5.19
+Depends: R (>= 2.6), stats, SparseM
+Imports: methods, graphics, Matrix, MatrixModels
+Suggests: tripack, akima, MASS, survival, rgl, logspline, nor1mix, Formula, zoo
+License: GPL (>= 2)
+MD5sum: 61db2f6a73dce02f17e61d837c35c27a
 NeedsCompilation: yes
 
 Package: R6

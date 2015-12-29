@@ -10,7 +10,7 @@ rawDataID <- "555a0a81e4b0a92fa7e9f3aa"
 
 tempFolder <- tempdir()
 
-source("config.R")
+source("auth.R")
 
 item_file_download(rawDataID, names='Round1_INFO_v3.csv',
                    destinations = file.path(tempFolder,'Round1_INFO_v3.csv'), 

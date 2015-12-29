@@ -1,12 +1,12 @@
 #Setup libraries
 # dir.create('rLibs')
 # 
-# install.packages(c("EGRETci","usgsEGRET","smwrGraphs","reshape2","sbtools"),
-#                  repo="file:packages",type="source",
-#                  dependencies=c("Depends","Imports"), lib='rLibs')
 install.packages(c("EGRETci","usgsEGRET","smwrGraphs","reshape2","sbtools"),
-                 repo="file:inst/condor/packages",type="source",
+                 repo="file:packages",type="source",
                  dependencies=c("Depends","Imports"), lib='rLibs')
+# install.packages(c("EGRETci","usgsEGRET","smwrGraphs","reshape2","sbtools"),
+#                  repo="file:inst/condor/packages",type="source",
+#                  dependencies=c("Depends","Imports"), lib='rLibs')
 args <- commandArgs(trailingOnly = TRUE)
 
 i <- as.numeric(args[1])+1 #Should be 1
@@ -86,16 +86,13 @@ flowDataTotal <- readRDS("flowData.rds")
     eList <- blankTime(eList, INFO$blank_start3, INFO$blank_end3)
   }
   
-  source("D:/LADData/RCode/htcTrends/inst/shiny/config.R")
+  source("auth.R")
   
   folderID <- item_create(topFolderID, 
                           title=paste(parameter,shortName,sep="_")) 
 
 #   dir.create(file.path(path, i), showWarnings = FALSE)
 #   setwd(file.path(path, i))
-
-  rename <- file.rename("eList.rds", paste0("eList","_",INFO$constitAbbrev,"_",sampleSite,".rds"))
-  
   
   tableResultData <- suppressWarnings(tableResults(eList, verbose = FALSE))
   tableResultData$Site_no <- rep(INFO$Site_no, length=nrow(tableResultData))
@@ -144,6 +141,7 @@ flowDataTotal <- readRDS("flowData.rds")
   
   fileStuff <- item_append_files(folderID,
                                  files = file.path(getwd(),"eList.rds"))
+  rename <- file.rename("eList.rds", paste0("eList","_",INFO$constitAbbrev,"_",sampleSite,".rds"))
   
   x <- item_append_files(folderID,
                          files = file.path(getwd(),"fluxBiasMulti.pdf"))
@@ -245,7 +243,7 @@ flowDataTotal <- readRDS("flowData.rds")
     bo$param_nm <-INFO$param_nm
     bootOut <- rbind(bootOut,bo)
     suppressMessages(saveEGRETci(eList, eBoot_72, caseSetUp, fileName = "trend_72_12"))
-    source("D:/LADData/RCode/htcTrends/inst/shiny/config.R")
+    source("config.R")
     fileStuff <- item_append_files(folderID,
                                    files = file.path(getwd(),"trend_72_12.txt"))
     fileStuff <- item_append_files(folderID,
@@ -273,7 +271,7 @@ flowDataTotal <- readRDS("flowData.rds")
     bo$param_nm <-INFO$param_nm
     bootOut <- rbind(bootOut,bo)
     suppressMessages(saveEGRETci(eList, eBoot_82, caseSetUp, fileName = "trend_82_12"))
-    source("D:/LADData/RCode/htcTrends/inst/shiny/config.R")
+    source("config.R")
     fileStuff <- item_append_files(folderID,
                                    files = file.path(getwd(),"trend_82_12.txt"))
     fileStuff <- item_append_files(folderID,
@@ -300,7 +298,7 @@ flowDataTotal <- readRDS("flowData.rds")
     bo$Site_no <- INFO$Site_no
     bo$param_nm <-INFO$param_nm
     bootOut <- rbind(bootOut,bo)
-    source("D:/LADData/RCode/htcTrends/inst/shiny/config.R")
+    source("config.R")
     fileStuff <- item_append_files(folderID,
                                    files = file.path(getwd(),"trend_92_12.txt"))
     fileStuff <- item_append_files(folderID,
@@ -328,7 +326,7 @@ flowDataTotal <- readRDS("flowData.rds")
     bo$param_nm <-INFO$param_nm
     bootOut <- rbind(bootOut,bo)
     suppressMessages(saveEGRETci(eList, eBoot_02, caseSetUp, fileName = "trend_02_12"))
-    source("D:/LADData/RCode/htcTrends/inst/shiny/config.R")
+    source("config.R")
     fileStuff <- item_append_files(folderID,
                                    files = file.path(getwd(),"trend_02_12.txt"))
     fileStuff <- item_append_files(folderID,
@@ -346,7 +344,7 @@ flowDataTotal <- readRDS("flowData.rds")
   
   write.csv(data.frame(as.character(errorMessages), stringsAsFactors = FALSE),
             file="errorMessages.csv",row.names=FALSE)
-  source("D:/LADData/RCode/htcTrends/inst/shiny/config.R")
+  source("config.R")
   fileStuff <- item_append_files(folderID,
                                  files = file.path(getwd(),"bootOut.csv"))
   rename <- file.rename("bootOut.csv", paste0("bootOut","_",INFO$constitAbbrev,"_",sampleSite,".csv"))

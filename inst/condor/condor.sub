@@ -1,6 +1,6 @@
 executable=simple.sh
 arguments=trendsCondor.R $(Process)
-transfer_input_files=trendsCondor.R,unzip,.Renviron,packages.zip,flowData.rds, infoData.rds, sampleData.rds
+transfer_input_files=trendsCondor.R,unzip,.Renviron,packages.zip,flowData.rds, infoData.rds, sampleData.rds, config.R, auth.R
 universe = vanilla
 output = out/$(Process).out
 error = err/$(Process).err

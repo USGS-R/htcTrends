@@ -29,8 +29,6 @@ sampleDataTotal <- readRDS("sampleData.rds")
 flowDataTotal <- readRDS("flowData.rds")
 
 
-# path <- "D:/LADData/NAWQATrends/CondorPractice/results_May19/newResults"
-
 ###########################
 # for (i in 8:nrow(infoDataTotal)){
 ###########################
@@ -68,11 +66,8 @@ flowDataTotal <- readRDS("flowData.rds")
   minWaterYear <- min(Sample$waterYear, na.rm=TRUE)
   maxWaterYear <- max(Sample$waterYear, na.rm=TRUE)
   
-  Daily <- Daily[Daily$waterYear >= minWaterYear & Daily$waterYear <= maxWaterYear,]
-  
+  # Daily <- Daily[Daily$waterYear >= minWaterYear & Daily$waterYear <= maxWaterYear,]
   eList <- mergeReport(INFO, Daily, Sample, interactive = FALSE)
-
-  
   eList$Sample <- eList$Sample[!is.na(eList$Sample$Q),]
   
   eList <- modelEstimation(eList, windowY = INFO$windowY, windowQ = INFO$windowQ, 

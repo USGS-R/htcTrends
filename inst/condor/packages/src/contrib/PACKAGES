@@ -23,7 +23,7 @@ Package: car
 Version: 2.1-1
 Depends: R (>= 3.2.0)
 Suggests: alr4, boot, coxme, leaps, lme4, lmtest, Matrix, MatrixModels, nlme, rgl (>=
-          0.93.960), sandwich, SparseM, survival, survey
+         0.93.960), sandwich, SparseM, survival, survey
 License: GPL (>= 2)
 MD5sum: af68cfa5cf41f9b3cf1d13817bf2a3ee
 NeedsCompilation: no
@@ -46,7 +46,8 @@ NeedsCompilation: yes
 Package: EGRET
 Version: 2.4.1
 Depends: R (>= 3.0)
-Imports: survival, fields, lubridate, methods, utils, graphics, stats, grDevices, truncnorm
+Imports: survival, fields, lubridate, methods, utils, graphics, stats, grDevices,
+         truncnorm
 Suggests: xtable, knitr, rmarkdown, extrafont, testthat, rkt
 License: CC0
 MD5sum: c7a0f619be0f5d691df2fb19725bc9e1
@@ -292,10 +293,10 @@ NeedsCompilation: yes
 Package: usgsEGRET
 Version: 0.0.4
 Depends: R (>= 3.0)
-Imports: survival, fields, lubridate, methods, smwrGraphs, smwrQW, utils, graphics, stats,
-          grDevices, truncnorm
+Imports: survival, fields, lubridate, methods, smwrGraphs, smwrQW, utils, graphics,
+         stats, grDevices, truncnorm
 Suggests: xtable, knitr, rmarkdown, extrafont, testthat, rkt
 License: CC0
-MD5sum: 8b4edde39d4ba06ae167f9d1b043e797
+MD5sum: e94bd4cf44138d24d6f15726880c0f4b
 NeedsCompilation: no
 

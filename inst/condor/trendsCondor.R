@@ -93,10 +93,6 @@ flowDataTotal <- readRDS("flowData.rds")
 
 #   dir.create(file.path(path, i), showWarnings = FALSE)
 #   setwd(file.path(path, i))
-  saveRDS(eList, file="eList.rds")
-  
-  fileStuff <- item_append_files(folderID,
-                                 files = file.path(getwd(),"eList.rds"))
 
   rename <- file.rename("eList.rds", paste0("eList","_",INFO$constitAbbrev,"_",sampleSite,".rds"))
   
@@ -138,15 +134,19 @@ flowDataTotal <- readRDS("flowData.rds")
   graphics.off()
   
   x <- item_append_files(folderID,
-                         files = file.path(getwd(),"multiPlotDataOverview.pdf"),
-                         session = session)
+                         files = file.path(getwd(),"multiPlotDataOverview.pdf"))
 
   setPDF(basename="fluxBiasMulti",layout = "landscape")
-  fluxBiasMulti(eList, USGSstyle = TRUE, rResid=TRUE)
+    eList <- fluxBiasMulti(eList, USGSstyle = TRUE, rResid=TRUE)
   graphics.off()
+  
+  saveRDS(eList, file="eList.rds")
+  
+  fileStuff <- item_append_files(folderID,
+                                 files = file.path(getwd(),"eList.rds"))
+  
   x <- item_append_files(folderID,
-                         files = file.path(getwd(),"fluxBiasMulti.pdf"),
-                         session = session)
+                         files = file.path(getwd(),"fluxBiasMulti.pdf"))
 
   setPDF(basename = "PlotHist")
   layoutResponse <- setLayout(num.rows=2)
@@ -159,11 +159,7 @@ flowDataTotal <- readRDS("flowData.rds")
   graphics.off()
   
   x <- item_append_files(folderID,
-                         files = file.path(getwd(),"PlotHist.pdf"),
-                         session = session)
-#   x <- suppressMessages(item_update_identifier(folderID, 'naqwa', 
-#                                                'data', paste(parameter,shortName,sep="_"), 
-#                                                session ))
+                         files = file.path(getwd(),"PlotHist.pdf"))
   
   for(istat in 1:8){
     subSeries <- printSeries(eList, istat, verbose=FALSE)
@@ -199,12 +195,10 @@ flowDataTotal <- readRDS("flowData.rds")
   write.csv(fullChange, "tableFlowChange.csv", row.names=FALSE)
   
   x <- item_append_files(folderID,
-                         files = file.path(getwd(),"flowStatistics.csv"),
-                         session = session)
+                         files = file.path(getwd(),"flowStatistics.csv"))
 
   x <- item_append_files(folderID,
-                         files = file.path(getwd(),"tableFlowChange.csv"),
-                         session = session)
+                         files = file.path(getwd(),"tableFlowChange.csv"))
 
   rename <- file.rename("tableFlowChange.csv", paste0("tableFlowChange","_",INFO$constitAbbrev,"_",sampleSite,".csv"))
   rename <- file.rename("flowStatistics.csv", paste0("flowStatistics","_",INFO$constitAbbrev,"_",sampleSite,".csv"))
@@ -214,16 +208,14 @@ flowDataTotal <- readRDS("flowData.rds")
   graphics.off()
   
   x <- item_append_files(folderID,
-                         files = file.path(getwd(),"plotQTimeDaily.pdf"),
-                         session = session)
+                         files = file.path(getwd(),"plotQTimeDaily.pdf"))
 
   pdf("plot15.pdf",heigh=10,width=8)
     plot15(eList, yearStart=yearPoints[1], yearEnd=yearPoints[length(yearPoints)])
   dev.off()
   
   x <- item_append_files(folderID,
-                         files = file.path(getwd(),"plot15.pdf"),
-                         session = session)
+                         files = file.path(getwd(),"plot15.pdf"))
 
   bootOut <- data.frame(matrix(NA, ncol=29))
   names(bootOut) <- c("rejectC","pValC","estC","lowC","upC","lowC50","upC50","lowC95","upC95",    
@@ -232,7 +224,6 @@ flowDataTotal <- readRDS("flowData.rds")
                       "yearStart","yearEnd","Site_no","param_nm")
   
   errorMessages <- ""
-  
   
   eList$Sample$Uncen[eList$Sample$Uncen == 0 & !is.na(eList$Sample$ConcLow)] <- 1
   eList$INFO$minNumUncen <- 5
@@ -254,14 +245,11 @@ flowDataTotal <- readRDS("flowData.rds")
     bo$param_nm <-INFO$param_nm
     bootOut <- rbind(bootOut,bo)
     suppressMessages(saveEGRETci(eList, eBoot_72, caseSetUp, fileName = "trend_72_12"))
-    
-    session <- authenticate_sb("midcondor@gmail.com", password = "ukC9py<s6Q(F")
+    source("D:/LADData/RCode/htcTrends/inst/shiny/config.R")
     fileStuff <- item_append_files(folderID,
-                                   files = file.path(getwd(),"trend_72_12.txt"),
-                                   session = session)
+                                   files = file.path(getwd(),"trend_72_12.txt"))
     fileStuff <- item_append_files(folderID,
-                                   files = file.path(getwd(),"trend_72_12.RData"),
-                                   session = session)
+                                   files = file.path(getwd(),"trend_72_12.RData"))
 
     saveRDS(eBoot_72, paste0("eBoot_72","_",INFO$constitAbbrev,"_",sampleSite,".rds"))
 
@@ -285,14 +273,11 @@ flowDataTotal <- readRDS("flowData.rds")
     bo$param_nm <-INFO$param_nm
     bootOut <- rbind(bootOut,bo)
     suppressMessages(saveEGRETci(eList, eBoot_82, caseSetUp, fileName = "trend_82_12"))
-    
-    session <- authenticate_sb("midcondor@gmail.com", password = "ukC9py<s6Q(F")
+    source("D:/LADData/RCode/htcTrends/inst/shiny/config.R")
     fileStuff <- item_append_files(folderID,
-                                   files = file.path(getwd(),"trend_82_12.txt"),
-                                   session = session)
+                                   files = file.path(getwd(),"trend_82_12.txt"))
     fileStuff <- item_append_files(folderID,
-                                   files = file.path(getwd(),"trend_82_12.RData"),
-                                   session = session)
+                                   files = file.path(getwd(),"trend_82_12.RData"))
     saveRDS(eBoot_82, paste0("eBoot_82","_",INFO$constitAbbrev,"_",sampleSite,".rds"))
 
   }
@@ -315,14 +300,11 @@ flowDataTotal <- readRDS("flowData.rds")
     bo$Site_no <- INFO$Site_no
     bo$param_nm <-INFO$param_nm
     bootOut <- rbind(bootOut,bo)
-    
-    session <- authenticate_sb("midcondor@gmail.com", password = "ukC9py<s6Q(F")
+    source("D:/LADData/RCode/htcTrends/inst/shiny/config.R")
     fileStuff <- item_append_files(folderID,
-                                   files = file.path(getwd(),"trend_92_12.txt"),
-                                   session = session)
+                                   files = file.path(getwd(),"trend_92_12.txt"))
     fileStuff <- item_append_files(folderID,
-                                   files = file.path(getwd(),"trend_92_12.RData"),
-                                   session = session)
+                                   files = file.path(getwd(),"trend_92_12.RData"))
 
     saveRDS(eBoot_92, paste0("eBoot_92","_",INFO$constitAbbrev,"_",sampleSite,".rds"))
 
@@ -346,14 +328,11 @@ flowDataTotal <- readRDS("flowData.rds")
     bo$param_nm <-INFO$param_nm
     bootOut <- rbind(bootOut,bo)
     suppressMessages(saveEGRETci(eList, eBoot_02, caseSetUp, fileName = "trend_02_12"))
-    session <- authenticate_sb("midcondor@gmail.com", password = "ukC9py<s6Q(F")
-    
+    source("D:/LADData/RCode/htcTrends/inst/shiny/config.R")
     fileStuff <- item_append_files(folderID,
-                                   files = file.path(getwd(),"trend_02_12.txt"),
-                                   session = session)
+                                   files = file.path(getwd(),"trend_02_12.txt"))
     fileStuff <- item_append_files(folderID,
-                                   files = file.path(getwd(),"trend_02_12.RData"),
-                                   session = session)
+                                   files = file.path(getwd(),"trend_02_12.RData"))
     saveRDS(eBoot_02, paste0("eBoot_02","_",INFO$constitAbbrev,"_",sampleSite,".rds"))
 
   }
@@ -367,12 +346,9 @@ flowDataTotal <- readRDS("flowData.rds")
   
   write.csv(data.frame(as.character(errorMessages), stringsAsFactors = FALSE),
             file="errorMessages.csv",row.names=FALSE)
-  
-  session <- authenticate_sb("midcondor@gmail.com", password = "ukC9py<s6Q(F")
-  
+  source("D:/LADData/RCode/htcTrends/inst/shiny/config.R")
   fileStuff <- item_append_files(folderID,
-                                 files = file.path(getwd(),"bootOut.csv"),
-                                 session = session)
+                                 files = file.path(getwd(),"bootOut.csv"))
   rename <- file.rename("bootOut.csv", paste0("bootOut","_",INFO$constitAbbrev,"_",sampleSite,".csv"))
   
   setPDF(basename="plotSDLogQ")
@@ -382,12 +358,10 @@ flowDataTotal <- readRDS("flowData.rds")
   graphics.off()
   
   x <- item_append_files(folderID,
-                         files = file.path(getwd(),"plotSDLogQ.pdf"),
-                         session = session)
+                         files = file.path(getwd(),"plotSDLogQ.pdf"))
 
   x <- suppressMessages(item_update_identifier(folderID, 'naqwa', 
-                                               'data', paste(parameter,shortName,sep="_"), 
-                                               session ))
+                                               'dataII', paste(parameter,shortName,sep="_")))
   
   files <-  list.files() 
   filesWeDontWant <- c("trendsCondor.R","condor.sub","simple.sh","packages.zip",

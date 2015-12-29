@@ -297,6 +297,6 @@ Imports: survival, fields, lubridate, methods, smwrGraphs, smwrQW, utils, graphi
          stats, grDevices, truncnorm
 Suggests: xtable, knitr, rmarkdown, extrafont, testthat, rkt
 License: CC0
-MD5sum: e94bd4cf44138d24d6f15726880c0f4b
+MD5sum: a8b4c645a40b0e18a178b933443a9c21
 NeedsCompilation: no
 

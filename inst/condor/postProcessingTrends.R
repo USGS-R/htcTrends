@@ -17,10 +17,9 @@ param <- "Ammonia"
 x <- query_item_identifier(scheme='naqwa', type = 'data', key = paste(param,site,sep="_"))
 
 tempDir <- tempdir()
-item_file_download(x$id, names='eList.RData',
-                   destinations = file.path(tempDir,'eList.RData'), 
-                   session=session, overwrite_file=TRUE)
-load(file.path(tempDir,'eList.RData'))
+item_file_download(x$id, names='eList.rds',
+                   destinations = file.path(tempDir,'eList.rds'), overwrite_file=TRUE)
+eList <- readRDS(file.path(tempDir,'eList.rds'))
 
 pdf("diffContour.pdf")
 plotDiffContours(eList, 1982, 2012, maxDiff = 1.5, 
@@ -28,10 +27,9 @@ plotDiffContours(eList, 1982, 2012, maxDiff = 1.5,
 dev.off()
 shell.exec("diffContour.pdf")
 
-item_file_download(x$id, names='trend_82_12.RData',
-                   destinations = file.path(tempDir,'trend_82_12.RData'), 
-                   session=session, overwrite_file=TRUE)
-load(file.path(tempDir,'trend_82_12.RData'))
+item_file_download(x$id, names='trend_92_12.RData',
+                   destinations = file.path(tempDir,'trend_92_12.RData'),overwrite_file=TRUE)
+load(file.path(tempDir,'trend_92_12.RData'))
 
 pdf("fluxTrend.pdf")
 plotHistogramTrend(eList, eBoot, caseSetUp)
@@ -45,15 +43,13 @@ param <- "Total Nitrogen"
 pdf("Compare3.pdf")
 par(mfcol=c(3,1))
 for (i in site){
-  x <- query_item_identifier('naqwa', 'data', 
-                             paste(param,i,sep="_"), 
-                             session=session)
+  x <- query_item_identifier(scheme='naqwa', type = 'data', key = paste(param,i,sep="_"))
   
   tempDir <- tempdir()
-  item_file_download(x$id, names='eList.RData',
-                     destinations = file.path(tempDir,'eList.RData'), 
+  item_file_download(x$id, names='eList.rds',
+                     destinations = file.path(tempDir,'eList.rds'), 
                      session=session, overwrite_file=TRUE)
-  load(file.path(tempDir,'eList.RData'))
+  eList <- readRDS(file.path(tempDir,'eList.rds'))
 
   plotFluxHist(eList, yearStart = 1992, yearEnd = 2012)
   

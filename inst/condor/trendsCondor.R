@@ -358,7 +358,7 @@ flowDataTotal <- readRDS("flowData.rds")
   x <- item_append_files(folderID,
                          files = file.path(getwd(),"plotSDLogQ.pdf"))
 
-  x <- suppressMessages(item_update_identifier(folderID, 'naqwa', 
+  x <- suppressMessages(item_update_identifier(id = folderID$id, type = 'naqwa', 
                                                'dataII', paste(parameter,shortName,sep="_")))
   
   files <-  list.files() 

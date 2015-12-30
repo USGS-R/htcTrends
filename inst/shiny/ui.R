@@ -1,3 +1,5 @@
+library(shinydashboard)
+
 shinyUI(
   fluidPage(
     h2("NAWQA Trends Exploration"),

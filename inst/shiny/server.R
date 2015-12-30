@@ -5,34 +5,35 @@ library(leaflet)
 library(dplyr)
 library(DT)
 
-# Fix in sbtools will allow this to work, in the meantime, it's in extdata:
-rawDataID <- "555a0a81e4b0a92fa7e9f3aa"
-
 tempFolder <- tempdir()
 
-source("auth.R")
-
-item_file_download(rawDataID, names='Round1_INFO_v3.csv',
-                   destinations = file.path(tempFolder,'Round1_INFO_v3.csv'), 
+# source("auth.R")
+source("D:/LADData/RCode/htcTrends/inst/condor/auth.R")
+#Raw Data
+rawDataID <- "5683f4b1e4b0a04ef4927c36"
+infoFile <- "infoData.rds"
+item_file_download(rawDataID, names=infoFile,
+                   destinations = file.path(tempFolder,infoFile), 
                    overwrite_file=TRUE)
 
-genInfo <- read.csv(file.path(tempFolder,'Round1_INFO_v3.csv'))
+genInfo <- readRDS(file.path(tempFolder,infoFile))
 
-item_file_download(rawDataID, names='bootOut.csv',
-                   destinations = file.path(tempFolder,'bootOut.csv'), 
+#Summary data:
+summaryFolder <- "56844047e4b0a04ef493313e"
+item_file_download(summaryFolder, names='bootOut.rds',
+                   destinations = file.path(tempFolder,'bootOut.rds'), 
                    overwrite_file=TRUE)
 
-bootOut <- read.csv(file.path(tempFolder,'bootOut.csv'))
+bootOut <- readRDS(file.path(tempFolder,'bootOut.rds'))
 
-topFolderID <- "5522f8dae4b027f0aee3d0cb"
+topFolderID <- "5679a0e9e4b0da412f4fc2b7"
 
 shinyServer(function(input, output, session) {
   
   eList_Start <- eventReactive(input$getData, {
 
     id <- idText()
-    
-    x <- query_item_identifier(scheme='naqwa', type = 'data', key = id)
+    x <- query_item_identifier(type='naqwa', scheme = 'dataII', key = id)
     
     item_file_download(x$id, names="eList.rds",
                        destinations = file.path(tempFolder,"eList.rds"), 
@@ -45,19 +46,8 @@ shinyServer(function(input, output, session) {
   eList <- reactive({
 
     eList_Start <- eList_Start()      
-
-    if(is.null(input$paStart)){
-      paStart <- 10
-    } else {
-      paStart = as.integer(which(month.name == input$paStart))
-    }
-    
-    if(is.null(input$paLong)){
-      paLong <- 12
-    } else {
-      paLong = as.integer(input$paLong)
-    }
-
+    paStart = as.integer(which(month.name == input$paStart))
+    paLong = as.integer(input$paLong)
     eList <- setPA(eList_Start, paStart, paLong)
     
   })
@@ -65,24 +55,9 @@ shinyServer(function(input, output, session) {
   flowPlotStuff <- reactive({
     
     eList <- eList()
-
-    if(is.null(input$flowStat)){
-      stat=5
-    } else {
-      stat = as.integer(input$flowStat)
-    }
-    
-    if(is.null(input$qUnit)){
-      qUnit = 1
-    } else {
-      qUnit = as.integer(input$qUnit)
-    }
-    
-    if(is.null(input$logScaleFlow)){
-      logScale = FALSE
-    } else {
-      logScale = as.logical(as.integer(input$logScaleFlow))
-    }
+    stat = as.integer(input$flowStat)
+    qUnit = as.integer(input$qUnit)
+    logScale = as.logical(as.integer(input$logScaleFlow))
 
     switch(input$flowPlots,
            "plotFlowSingle" = plotFlowSingle(eList, istat=stat, qUnit = qUnit, USGSstyle = TRUE),
@@ -115,19 +90,9 @@ shinyServer(function(input, output, session) {
   dataPlotStuff <- reactive({
     
     eList <- eList()
+    qUnit = as.integer(input$qUnit)
+    logScale = as.logical(as.integer(input$logScaleData))
 
-    if(is.null(input$qUnit)){
-      qUnit = 1
-    } else {
-      qUnit = as.integer(input$qUnit)
-    }
-    
-    if(is.null(input$logScaleData)){
-      logScale = FALSE
-    } else {
-      logScale = as.logical(as.integer(input$logScaleData))
-    }
-    
     switch(input$dataPlots,
            "boxConcMonth" = boxConcMonth(eList, logScale = logScale, USGSstyle = TRUE),
            "boxQTwice" = boxQTwice(eList, qUnit = qUnit, USGSstyle = TRUE),
@@ -400,7 +365,7 @@ shinyServer(function(input, output, session) {
     flippedTable <- data.frame(t(INFO[,names(INFO) %in% c("station_nm","site_no","agency_cd",
                                          "dec_lat_va","dec_long_va","tz_cd",
                                          "drainSqKm","shortName","param_nm",
-                                         "param_units","paramShortName",
+                                         "param_units","param_nm",
                                          "paramNumber")]))
     
     DT::datatable(flippedTable, colnames = "",
@@ -411,9 +376,9 @@ shinyServer(function(input, output, session) {
     genInfo <- choseData()
     legendTitle <- attr(genInfo, "legendTitle")
     
-    genInfo <- genInfo[,c("paramShortName","shortName","drainSqKm","colData")]
+    genInfo <- genInfo[,c("param_nm","shortName","drainSqKm","colData")]
     
-    names(genInfo) <- c("paramShortName","shortName","drainSqKm",legendTitle)
+    names(genInfo) <- c("param_nm","shortName","drainSqKm",legendTitle)
     
     genInfoDT <- DT::datatable(genInfo, selection = "single")
     genInfoDT <- formatRound(genInfoDT, legendTitle, 2) 
@@ -594,30 +559,12 @@ shinyServer(function(input, output, session) {
   
   output$dataCode <- renderPrint({
     
-    if(is.null(input$qUnit)){
-      qUnit = 1
-    } else {
-      qUnit = as.integer(input$qUnit)
-    }
-    
-    if(is.null(input$paStart)){
-      paStart <- 10
-    } else {
-      paStart = as.integer(which(month.name == input$paStart))
-    }
-    
-    if(is.null(input$paLong)){
-      paLong <- 12
-    } else {
-      paLong = as.integer(input$paLong)
-    }
-    
-    if(is.null(input$logScaleData)){
-      logScale = FALSE
-    } else {
-      logScale = as.logical(as.integer(input$logScaleData))
-    }
-    
+
+    qUnit = as.integer(input$qUnit)
+    paStart = as.integer(which(month.name == input$paStart))
+    paLong = as.integer(input$paLong)
+    logScale = as.logical(as.integer(input$logScaleData))
+
     outText <- switch(input$dataPlots,
                       "boxConcMonth" = paste0("boxConcMonth(eList, logScale = ", logScale,")"),
                       "boxQTwice" = paste0("boxQTwice(eList, qUnit = ", qUnit, ")"),
@@ -635,30 +582,11 @@ shinyServer(function(input, output, session) {
   output$modelCode <- renderPrint({
     
     eList <- eList()
-    
-    if(is.null(input$qUnit)){
-      qUnit = 1
-    } else {
-      qUnit = as.integer(input$qUnit)
-    }
-    
-    if(is.null(input$fluxUnit)){
-      fluxUnit = 3
-    } else {
-      fluxUnit = as.integer(input$fluxUnit)
-    }
-    
-    if(is.null(input$paStart)){
-      paStart <- 10
-    } else {
-      paStart = as.integer(which(month.name == input$paStart))
-    }
-    
-    if(is.null(input$paLong)){
-      paLong <- 12
-    } else {
-      paLong = as.integer(input$paLong)
-    }
+
+    qUnit = as.integer(input$qUnit)
+    fluxUnit = as.integer(input$fluxUnit)
+    paStart = as.integer(which(month.name == input$paStart))
+    paLong = as.integer(input$paLong)
     
     if(is.null(input$date1)){
       date1 = as.Date(quantile(eList$Daily$Date, type=1, probs = 0.1), origin="1970-01-01")
@@ -773,9 +701,7 @@ shinyServer(function(input, output, session) {
   output$mymap <- leaflet::renderLeaflet({
     
     leaflet() %>%
-      # addProviderTiles("Esri.WorldPhysical") %>%
       addProviderTiles("CartoDB.Positron") %>%
-      # addProviderTiles("Esri.WorldStreetMap") %>%
       setView(lng = -99.5, lat = 40, zoom=4) 
     
   })
@@ -783,7 +709,7 @@ shinyServer(function(input, output, session) {
   output$paramList <- renderUI({
 
     selectInput("paramList", label = "Parameter", 
-                choices = c("All",levels(genInfo$paramShortName)),
+                choices = c("All",unique(genInfo$param_nm)),
                  multiple = FALSE)
 
   })
@@ -816,7 +742,7 @@ shinyServer(function(input, output, session) {
     if(paramList == "All"){
       subData <- genInfo
     } else {
-      subData <- genInfo[genInfo$paramShortName == paramList,]
+      subData <- genInfo[genInfo$param_nm == paramList,]
     }
     
     subData <- suppressWarnings(left_join(subData, bootOut, by=c("Site_no", "param_nm")))
@@ -835,7 +761,7 @@ shinyServer(function(input, output, session) {
     if(nrow(subData) > 0){
       
         subData <- subData[!is.na(subData$yearStart),]
-        subData$ID <-  paste(as.character(subData$paramShortName),subData$Site_no,sep="_")
+        subData$ID <-  paste(as.character(subData$param_nm),subData$Site_no,sep="_")
         
         if(fluxOrConc == "Flux"){
           if(up == "Up"){
@@ -935,9 +861,7 @@ shinyServer(function(input, output, session) {
   output$dataAvailable <- renderText({
     
     eList <- eList()
-
     INFO <- eList$INFO
-    
     HTML(paste0("<h4>Data retrieved from sciencebase: <bold>",INFO$station_nm,"</bold></h4>"))      
     
   })

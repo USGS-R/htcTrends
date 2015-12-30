@@ -34,13 +34,11 @@ shinyServer(function(input, output, session) {
 
     id <- idText()
     x <- query_item_identifier(type='naqwa', scheme = 'dataII', key = id)
-    
     item_file_download(x$id, names="eList.rds",
                        destinations = file.path(tempFolder,"eList.rds"), 
                        overwrite_file=TRUE) 
     
     eList_Start <- readRDS(file.path(tempFolder,"eList.rds"))
-    
   })
   
   eList <- reactive({
@@ -810,6 +808,7 @@ shinyServer(function(input, output, session) {
         addCircleMarkers(lat=~dec_lat_va, lng=~dec_long_va, 
                          layerId = ~ID,
                    fillColor = ~pal(colData), 
+                   popup = ~ID,
                    # weight=1,
                    radius=3,
                    stroke=FALSE,
@@ -858,14 +857,13 @@ shinyServer(function(input, output, session) {
     
   })
 
-  output$dataAvailable <- renderText({
-    
+  observe({
     eList <- eList()
     INFO <- eList$INFO
-    HTML(paste0("<h4>Data retrieved from sciencebase: <bold>",INFO$station_nm,"</bold></h4>"))      
-    
-  })
+    updateTextInput(session, "inText", 
+                    value = paste0("Data retrieved from sciencebase: ",INFO$station_nm))
   
+  })
 
   
 })

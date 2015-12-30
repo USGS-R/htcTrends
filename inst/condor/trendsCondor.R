@@ -364,7 +364,7 @@ flowDataTotal <- readRDS("flowData.rds")
   files <-  list.files() 
   filesWeDontWant <- c("trendsCondor.R","condor.sub","simple.sh","packages.zip",
                        "flowData.RData","infoData.RData","subData.RData","unzip",
-                       "rLibs","packages","condor_exec.exe")
+                       "rLibs","packages","condor_exec.exe","config.R","auth.R")
   filesWeWant <- files[!(files %in% filesWeDontWant)]
   zip(zipfile="trends.zip", files=filesWeWant)
 

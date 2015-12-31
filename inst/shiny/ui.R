@@ -98,17 +98,7 @@ sidebar <- dashboardSidebar(
                               "plotResidQ","plotResidTime","boxResidMonth","boxConcThree",
                               "plotConcHist","plotFluxHist","plotConcQSmooth","plotConcTimeSmooth",
                               "fluxBiasMulti","plotContours","plotDiffContours"),
-                  selected = "fluxBiasMulti", multiple = FALSE),
-                  uiOutput("date1"),
-                  uiOutput("date2"),
-                  uiOutput("date3"),
-                  # uiOutput("qLow"),
-                  uiOutput("qMid"),
-                  # uiOutput("qHigh"),
-                  uiOutput("maxDiff"),
-                  uiOutput("from"),
-                  uiOutput("to"),
-                  uiOutput("by")
+                  selected = "fluxBiasMulti", multiple = FALSE)
     ),
     conditionalPanel(
       condition = paste("input.analyzeChoices == 'exploreModel' && (",
@@ -137,7 +127,24 @@ sidebar <- dashboardSidebar(
     conditionalPanel(
       condition = paste("input.analyzeChoices == 'exploreModel' && ",
                         'input.modelPlots == "plotConcQSmooth"'),
+      dateInput("date1", label = "date1", 
+                value = "1992-01-01"),
+      dateInput("date2", label = "date2", 
+                value = "1998-01-01"),
+      dateInput("date3", label = "date3", 
+                value = "2005-01-01"),
       textInput("centerDate", label = h5("centerDate"), value = "04-01")     
+    ),
+    conditionalPanel(
+      condition = paste("input.analyzeChoices == 'exploreModel' && ",
+                        'input.modelPlots == "plotDiffContours"'),
+      numericInput("maxDiff", label = "maxDiff", value = 1)
+    ),
+    conditionalPanel(
+      condition = paste("input.analyzeChoices == 'exploreModel' && (",
+                        'input.modelPlots == "plotConcQSmooth" ||',
+                        'input.modelPlots == "plotConcTimeSmooth" )'),
+      numericInput("qMid", label = "qMid", value = 1)
     ),
     conditionalPanel(
       condition = paste("input.analyzeChoices == 'exploreModel' && ",
@@ -158,6 +165,15 @@ sidebar <- dashboardSidebar(
                         'input.dataPlots == "plotConcTime" ||',
                         'input.dataPlots == "plotConcQ")'),
       checkboxInput("logScaleData", label = "Log Scale", value = FALSE)     
+    ),
+    conditionalPanel(
+      condition = paste("input.analyzeChoices == 'exploreModel' && (",
+                        'input.modelPlots == "plotResidPred" ||',
+                        'input.modelPlots == "plotResidQ" ||',
+                        'input.modelPlots == "plotResidTime" ||',
+                        'input.modelPlots == "boxResidMonth" ||',
+                        'input.modelPlots == "fluxBiasMulti")'),
+      checkboxInput("rResid", label = "Randomize Residuals", value = TRUE)     
     ),
     conditionalPanel(
       condition = "input.analyzeChoices == 'flowHistory'",

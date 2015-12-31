@@ -437,13 +437,7 @@ shinyServer(function(input, output, session) {
                 value = as.Date(quantile(eList$Daily$Date, type=1, probs = 0.9), origin="1970-01-01"))
     }
   })
-  
-  output$centerDate <- renderUI({
-    if(input$modelPlots == "plotConcQSmooth"){
-      textInput("centerDate", label = h5("centerDate"), value = "04-01")
-    }
-  })
-  
+
   output$qLow <- renderUI({
     if(input$modelPlots %in% c("plotConcQSmooth","plotConcTimeSmooth","plotContours","plotDiffContours")){
       eList <- eList()
@@ -471,47 +465,14 @@ shinyServer(function(input, output, session) {
     }
   })
 
-  output$flowStatistic <- renderUI({
-    if(input$flowPlots == "plotFlowSingle"){
-      selectInput("flowStat", label = "Flow Statistic", 
-                  choices = list("1-day minimum"=1, "7-day minimum"=2, "30-day minimum"=3, "median"=4,
-                                 "mean"=5, "30-day maximum"=6, "7-day maximum"=7, "1-day maximum"=8),
-                  selected = 5, multiple = FALSE)
-    }
-  })
-  
+
   output$flowCode <- renderPrint({
-    
-    if(is.null(input$flowStat)){
-      stat=5
-    } else {
-      stat = as.integer(input$flowStat)
-    }
-    
-    if(is.null(input$qUnit)){
-      qUnit = 1
-    } else {
-      qUnit = as.integer(input$qUnit)
-    }
-    
-    if(is.null(input$paStart)){
-      paStart <- 10
-    } else {
-      paStart = as.integer(which(month.name == input$paStart))
-    }
-    
-    if(is.null(input$paLong)){
-      paLong <- 12
-    } else {
-      paLong = as.integer(input$paLong)
-    }
-    
-    
-    if(is.null(input$logScaleFlow)){
-      logScale = FALSE
-    } else {
-      logScale = as.logical(as.integer(input$logScaleFlow))
-    }
+
+    stat = as.integer(input$flowStat)
+    qUnit = as.integer(input$qUnit)
+    paStart = as.integer(which(month.name == input$paStart))
+    paLong = as.integer(input$paLong)
+    logScale = as.logical(as.integer(input$logScaleFlow))
     
     outText <- switch(input$flowPlots,
                       "plotFlowSingle" = paste0("plotFlowSingle(eList, istat=", stat,", qUnit = ", qUnit, ")"),
@@ -528,7 +489,6 @@ shinyServer(function(input, output, session) {
   })
   
   output$dataCode <- renderPrint({
-    
 
     qUnit = as.integer(input$qUnit)
     paStart = as.integer(which(month.name == input$paStart))
@@ -557,89 +517,20 @@ shinyServer(function(input, output, session) {
     fluxUnit = as.integer(input$fluxUnit)
     paStart = as.integer(which(month.name == input$paStart))
     paLong = as.integer(input$paLong)
-    
-    if(is.null(input$date1)){
-      date1 = as.Date(quantile(eList$Daily$Date, type=1, probs = 0.1), origin="1970-01-01")
-    } else {
-      date1 = input$date1
-    }
-    
-    if(is.null(input$date2)){
-      date2 = as.Date(quantile(eList$Daily$Date, type=1, probs = 0.5), origin="1970-01-01")
-    } else {
-      date2 = input$date2
-    }
-    
-    if(is.null(input$date3)){
-      date3 = as.Date(quantile(eList$Daily$Date, type=1, probs = 0.9), origin="1970-01-01")
-    } else {
-      date3 = input$date3
-    }
-    
-    if(is.null(input$qLow)){
-      qLow = quantile(eList$Daily$Q, probs = 0.1)
-    } else {
-      qLow = input$qLow
-    }
-    
-    if(is.null(input$qHigh)){
-      qHigh = quantile(eList$Daily$Q, probs = 0.9)
-    } else {
-      qHigh = input$qHigh
-    }
-    
-    if(is.null(input$qMid)){
-      qMid = round(quantile(eList$Daily$Q, probs = 0.5),digits = 1)
-    } else {
-      qMid = input$qMid
-    }
-    
-    if(is.null(input$centerDate)){
-      centerDate = "04-01"
-    } else {
-      centerDate = input$centerDate
-    }
-    
-    if(is.null(input$yearRange)){
-      yearStart = ceiling(min(eList$Daily$DecYear))
-      yearEnd = floor(max(eList$Daily$DecYear))
-    } else {
-      yearStart = as.integer(input$yearRange[1])
-      yearEnd = as.integer(input$yearRange[2])
-    }
-    
-#     if(is.null(input$yearEnd)){
-#       yearEnd = floor(max(eList$Daily$DecYear))
-#     } else {
-#       yearEnd = as.integer(input$yearEnd)
-#     }
-    
-    if(is.null(input$maxDiff)){
-      maxDiff = diff(range(eList$Sample$ConcAve))
-    } else {
-      maxDiff = as.integer(input$maxDiff)
-    }
-    
-    contours <- pretty(c(min(eList$surfaces[,,3]), max(eList$surfaces[,,3])), n=5)
-    
-    if(is.null(input$from)){
-      from <- contours[1]
-    } else {
-      from = as.numeric(input$from)
-    }
-    
-    if(is.null(input$to)){
-      to <- contours[length(contours)]
-    } else {
-      to = as.numeric(input$to)
-    }
-    
-    if(is.null(input$by)){
-      by <- 5
-    } else {
-      by = as.integer(input$by)
-    }
-    
+    date1 = input$date1
+    date2 = input$date2
+    date3 = input$date3
+    qLow = input$qLow
+    qHigh = input$qHigh
+    qMid = input$qMid
+    centerDate = input$centerDate
+    yearStart = as.integer(input$yearRange[1])
+    yearEnd = as.integer(input$yearRange[2])
+    maxDiff = as.integer(input$maxDiff)
+    from = as.numeric(input$from)
+    to = as.numeric(input$to)
+    by = as.integer(input$by)
+
     outText <- switch(input$modelPlots,
                       "plotConcTimeDaily" = paste0("plotConcTimeDaily(eList)"),
                       "plotFluxTimeDaily" = paste0("plotFluxTimeDaily(eList, fluxUnit = ", fluxUnit),

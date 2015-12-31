@@ -126,7 +126,12 @@ sidebar <- dashboardSidebar(
                         'input.modelPlots == "plotConcQSmooth" ||',
                         'input.modelPlots == "plotConcTimeSmooth")'),
       checkboxInput("logScaleModel", label = "Log Scale", value = TRUE)      
-    ),    
+    ),  
+    conditionalPanel(
+      condition = paste("input.analyzeChoices == 'exploreModel' && ",
+                        'input.modelPlots == "plotConcQSmooth"'),
+      textInput("centerDate", label = h5("centerDate"), value = "04-01")     
+    ),  
     conditionalPanel(
       condition = "input.analyzeChoices == 'exploreData'",
       selectInput("dataPlots", label = "Choose Plot:", 
@@ -147,7 +152,15 @@ sidebar <- dashboardSidebar(
                   selected = "plotFlowSingle", multiple = FALSE),
       uiOutput("flowStatistic"),
       uiOutput("flowLog")
-      ),    
+      ),
+    conditionalPanel(
+      condition = paste("input.analyzeChoices == 'flowHistory' && ",
+                        'input.modelPlots == "plotFlowSingle"'),
+      selectInput("flowStat", label = "Flow Statistic", 
+                  choices = list("1-day minimum"=1, "7-day minimum"=2, "30-day minimum"=3, "median"=4,
+                                 "mean"=5, "30-day maximum"=6, "7-day maximum"=7, "1-day maximum"=8),
+                  selected = 5, multiple = FALSE)     
+    ), 
     selectInput("paStart", label = "Starting Month", 
                 choices = c(month.name),
                 selected = "October", multiple = FALSE),

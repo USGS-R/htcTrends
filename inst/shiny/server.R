@@ -7,8 +7,8 @@ library(DT)
 
 tempFolder <- tempdir()
 
-# source("auth.R")
-source("D:/LADData/RCode/htcTrends/inst/condor/auth.R")
+source("auth.R")
+# source("D:/LADData/RCode/htcTrends/inst/condor/auth.R")
 #Raw Data
 rawDataID <- "5683f4b1e4b0a04ef4927c36"
 infoFile <- "infoData.rds"
@@ -31,7 +31,7 @@ topFolderID <- "5679a0e9e4b0da412f4fc2b7"
 shinyServer(function(input, output, session) {
   
   eList_Start <- eventReactive(input$getData, {
-
+    source("config.R")
     id <- idText()
     x <- query_item_identifier(type='naqwa', scheme = 'dataII', key = id)
     item_file_download(x$id, names="eList.rds",
@@ -345,9 +345,7 @@ shinyServer(function(input, output, session) {
     
     eList <- eList()
     
-    if(is.na(eList$Sample)){
-      HTML(paste0("<h4>","No water quality data", "</h4>"))
-    } else if(nrow(eList$Sample) == 0) {
+    if(nrow(eList$Sample) == 0) {
       HTML(paste0("<h4>","No water quality data", "</h4>"))
     } else {
       HTML("")
@@ -831,21 +829,20 @@ shinyServer(function(input, output, session) {
   
   idText <- reactive({
     
-    if(input$tabs == "Map"){
-      click <- input$mymap_marker_click
-      if(is.null(click)){
-        return  
-      }   
-      text<-click$id   
-    } else {
+    if(input$tabs == "Table\n<i class=\"fa fa-bars\"></i>"){
       tableClick <- input$modelDataToChose_rows_selected
       if(is.null(tableClick)){
         return
       }
       genInfo <- choseData()
-      text <- genInfo$ID[as.integer(tableClick[length(tableClick)])]
-    }    
-    
+      text <- genInfo$ID[as.integer(tableClick[length(tableClick)])]      
+    } else {
+      click <- input$mymap_marker_click
+      if(is.null(click)){
+        return  
+      }   
+      text<-click$id   
+    } 
     
     text
     

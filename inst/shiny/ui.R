@@ -99,14 +99,12 @@ sidebar <- dashboardSidebar(
                               "plotConcHist","plotFluxHist","plotConcQSmooth","plotConcTimeSmooth",
                               "fluxBiasMulti","plotContours","plotDiffContours"),
                   selected = "fluxBiasMulti", multiple = FALSE),
-                  uiOutput("modelLog"),
                   uiOutput("date1"),
                   uiOutput("date2"),
                   uiOutput("date3"),
-                  uiOutput("qLow"),
+                  # uiOutput("qLow"),
                   uiOutput("qMid"),
-                  uiOutput("qHigh"),
-                  uiOutput("centerDate"),
+                  # uiOutput("qHigh"),
                   uiOutput("maxDiff"),
                   uiOutput("from"),
                   uiOutput("to"),
@@ -128,9 +126,25 @@ sidebar <- dashboardSidebar(
       checkboxInput("logScaleModel", label = "Log Scale", value = TRUE)      
     ),  
     conditionalPanel(
+      condition = paste("input.analyzeChoices == 'exploreModel' && (",
+                        'input.modelPlots == "plotConcQSmooth" ||',
+                        'input.modelPlots == "plotConcTimeSmooth" ||',
+                        'input.modelPlots == "plotDiffContours" ||',
+                        'input.modelPlots == "plotContours")'),
+      sliderInput("flowRange", "Discharge Range:",sep = "",
+                  min = 0, max = 1, value = c(0.1,0.9))        
+    ), 
+    conditionalPanel(
       condition = paste("input.analyzeChoices == 'exploreModel' && ",
                         'input.modelPlots == "plotConcQSmooth"'),
       textInput("centerDate", label = h5("centerDate"), value = "04-01")     
+    ),
+    conditionalPanel(
+      condition = paste("input.analyzeChoices == 'exploreModel' && ",
+                        'input.modelPlots == "plotContours"'),
+      sliderInput("concRange", "Concentration Range:",sep = "",
+                  min = 0, max = 1, value = c(0.1,0.9)),
+      numericInput("by", label = h5("Number of divisions"), value = 5) 
     ),  
     conditionalPanel(
       condition = "input.analyzeChoices == 'exploreData'",
@@ -149,18 +163,21 @@ sidebar <- dashboardSidebar(
       condition = "input.analyzeChoices == 'flowHistory'",
       selectInput("flowPlots", label = "Choose Plot:", 
                   choices = c("plotFlowSingle","plotSDLogQ","plotQTimeDaily","plotFour","plotFourStats"),
-                  selected = "plotFlowSingle", multiple = FALSE),
-      uiOutput("flowStatistic"),
-      uiOutput("flowLog")
+                  selected = "plotFlowSingle", multiple = FALSE)
       ),
     conditionalPanel(
       condition = paste("input.analyzeChoices == 'flowHistory' && ",
-                        'input.modelPlots == "plotFlowSingle"'),
+                        'input.flowPlots == "plotFlowSingle"'),
       selectInput("flowStat", label = "Flow Statistic", 
                   choices = list("1-day minimum"=1, "7-day minimum"=2, "30-day minimum"=3, "median"=4,
                                  "mean"=5, "30-day maximum"=6, "7-day maximum"=7, "1-day maximum"=8),
                   selected = 5, multiple = FALSE)     
     ), 
+    conditionalPanel(
+      condition = paste("input.analyzeChoices == 'flowHistory' && ",
+                        'input.flowPlots == "plotQTimeDaily"'),
+      checkboxInput("logScaleFlow", label = "Log Scale", value = FALSE)     
+    ),
     selectInput("paStart", label = "Starting Month", 
                 choices = c(month.name),
                 selected = "October", multiple = FALSE),

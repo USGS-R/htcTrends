@@ -54,7 +54,7 @@ shinyServer(function(input, output, session) {
     eList <- eList()
     stat = as.integer(input$flowStat)
     qUnit = as.integer(input$qUnit)
-    logScale = as.logical(as.integer(input$logScaleFlow))
+    logScale = input$logScaleFlow
 
     switch(input$flowPlots,
            "plotFlowSingle" = plotFlowSingle(eList, istat=stat, qUnit = qUnit),
@@ -121,11 +121,7 @@ shinyServer(function(input, output, session) {
   modelPlotStuff <- reactive({
     
     eList <- eList()
-    
-    if(!is.list(eList)){
-      eList <- eList_onLoad
-    }
-    
+
     if(is.null(input$date1)){
       date1 = as.Date(quantile(eList$Daily$Date, type=1, probs = 0.1), origin="1970-01-01")
     } else {
@@ -143,88 +139,27 @@ shinyServer(function(input, output, session) {
     } else {
       date3 = input$date3
     }
+
+    qLow = input$flowRange[1]
+    qHigh = input$flowRange[2]
+    qMid = input$qMid
+    qUnit = as.integer(input$qUnit)
+    logScale = input$logScaleModel
+    fluxUnit = as.integer(input$fluxUnit)
+    centerDate = input$centerDate
+    yearStart = as.integer(input$yearRange[1])
+    yearEnd = as.integer(input$yearRange[2])
     
-    if(is.null(input$qLow)){
-      qLow = round(quantile(eList$Daily$Q, probs = 0.1),digits = 1)
-    } else {
-      qLow = input$qLow
-    }
-    
-    if(is.null(input$qHigh)){
-      qHigh = round(quantile(eList$Daily$Q, probs = 0.9),digits = 1)
-    } else {
-      qHigh = input$qHigh
-    }
-    
-    if(is.null(input$qMid)){
-      qMid = round(quantile(eList$Daily$Q, probs = 0.5),digits = 1)
-    } else {
-      qMid = input$qMid
-    }
-    
-    if(is.null(input$qUnit)){
-      qUnit = 1
-    } else {
-      qUnit = as.integer(input$qUnit)
-    }
-    
-    if(is.null(input$logScaleModel)){
-      logScale = FALSE
-    } else {
-      logScale = input$logScaleModel
-    }
-    
-    if(is.null(input$fluxUnit)){
-      fluxUnit = 3
-    } else {
-      fluxUnit = as.integer(input$fluxUnit)
-    }
-    
-    if(is.null(input$centerDate)){
-      centerDate = "04-01"
-    } else {
-      centerDate = input$centerDate
-    }
-    
-    if(is.null(input$yearRange)){
-      yearStart = ceiling(min(eList$Daily$DecYear))
-      yearEnd = floor(max(eList$Daily$DecYear))
-    } else {
-      yearStart = as.integer(input$yearRange[1])
-      yearEnd = as.integer(input$yearRange[2])
-    }
-    
-#     if(is.null(input$yearEnd)){
-#       yearEnd = floor(max(eList$Daily$DecYear))
-#     } else {
-#       yearEnd = as.integer(input$yearEnd)
-#     }
-    
+
     if(is.null(input$maxDiff)){
       maxDiff = diff(range(eList$Sample$ConcAve))
     } else {
       maxDiff = round(as.numeric(input$maxDiff),digits = 3)
     }
     
-    contours <- pretty(c(min(eList$surfaces[,,3]), max(eList$surfaces[,,3])), n=5)
-    
-    if(is.null(input$from)){
-      from <- contours[1]
-    } else {
-      from = as.numeric(input$from)
-    }
-    
-    if(is.null(input$to)){
-      to <- contours[length(contours)]
-    } else {
-      to = as.numeric(input$to)
-    }
-    
-    if(is.null(input$by)){
-      by <- 5
-    } else {
-      by = as.integer(input$by)
-    }
+    from = as.numeric(input$concRange[1])
+    to = as.numeric(input$concRange[2])
+    by = as.integer(input$by)+1
 
     switch(input$modelPlots,
            "plotConcTimeDaily" = plotConcTimeDaily(eList),
@@ -276,28 +211,6 @@ shinyServer(function(input, output, session) {
   
   output$modelPlotsOut <- renderPlot({
     modelPlotStuff()
-  })
-  
-  output$from <- renderUI({
-    if(input$modelPlots %in% c("plotContours")){
-      eList <- eList()
-      contours <- pretty(c(min(eList$surfaces[,,3]), max(eList$surfaces[,,3])), n=5)
-      numericInput("from", label = h5("From"), value = contours[1])
-    }
-  })  
-  
-  output$to <- renderUI({
-    if(input$modelPlots %in% c("plotContours")){
-      eList <- eList()
-      contours <- pretty(c(min(eList$surfaces[,,3]), max(eList$surfaces[,,3])), n=5)
-      numericInput("to", label = h5("To"), value = contours[length(contours)])
-    }
-  })
-  
-  output$by <- renderUI({
-    if(input$modelPlots %in% c("plotContours")){
-      numericInput("by", label = h5("Number of divisions"), value = 5)
-    }
   })
   
   output$downloadModelPlot <- downloadHandler(
@@ -384,20 +297,12 @@ shinyServer(function(input, output, session) {
     
     eList <- eList()
     
-    if(is.na(eList$Sample)){
+    if(all(is.na(eList$Sample))){
       HTML(paste0("<h4>","No water quality data", "</h4>"))
     } else if(nrow(eList$Sample) == 0) {
       HTML(paste0("<h4>","No water quality data", "</h4>"))
     } else {
       HTML("")
-    }
-  })
-  
-  output$flowLog <- renderUI({
-    if(input$flowPlots == "plotQTimeDaily"){
-      radioButtons("logScaleFlow", label = h4("Scale"),
-                   choices = list("Linear" = 0, "Log" = 1), 
-                   selected = 0)
     }
   })
   
@@ -412,6 +317,38 @@ shinyServer(function(input, output, session) {
     eList <- eList()
     updateSliderInput(session, "yearRange", 
                       min = ceiling(min(eList$Daily$DecYear)), max = floor(max(eList$Daily$DecYear)))
+  })
+  
+  observe({
+    eList <- eList()
+    contours <- pretty(c(min(eList$surfaces[,,3]), max(eList$surfaces[,,3])), n=5)
+    updateSliderInput(session, "concRange", 
+                      min = contours[1], max = contours[length(contours)])
+  })
+  
+  #   output$from <- renderUI({
+  #     if(input$modelPlots %in% c("plotContours")){
+  #       eList <- eList()
+  #       contours <- pretty(c(min(eList$surfaces[,,3]), max(eList$surfaces[,,3])), n=5)
+  #       numericInput("from", label = h5("From"), value = contours[1])
+  #     }
+  #   })  
+  #   
+  #   output$to <- renderUI({
+  #     if(input$modelPlots %in% c("plotContours")){
+  #       eList <- eList()
+  #       contours <- pretty(c(min(eList$surfaces[,,3]), max(eList$surfaces[,,3])), n=5)
+  #       numericInput("to", label = h5("To"), value = contours[length(contours)])
+  #     }
+  #   })
+  
+  observe({
+    eList <- eList()
+    qFactor <- qConst[shortCode=as.integer(input$qUnit)][[1]]
+    qFactor <- qFactor@qUnitFactor
+    updateSliderInput(session, "flowRange", 
+                      min = as.numeric(round(qFactor * quantile(eList$Daily$Q, probs = 0.1),digits = 1)),
+                      max = as.numeric(round(qFactor * quantile(eList$Daily$Q, probs = 0.9),digits = 1)))
   })
   
   output$date1 <- renderUI({
@@ -438,23 +375,23 @@ shinyServer(function(input, output, session) {
     }
   })
 
-  output$qLow <- renderUI({
-    if(input$modelPlots %in% c("plotConcQSmooth","plotConcTimeSmooth","plotContours","plotDiffContours")){
-      eList <- eList()
-      qFactor <- qConst[shortCode=as.integer(input$qUnit)][[1]]
-      qFactor <- qFactor@qUnitFactor
-      numericInput("qLow", label = h5("qLow"), value = round(qFactor * quantile(eList$Daily$Q, probs = 0.1),digits = 1))
-    }
-  })
-  
-  output$qHigh <- renderUI({
-    if(input$modelPlots %in% c("plotConcQSmooth","plotConcTimeSmooth","plotContours","plotDiffContours")){
-      eList <- eList()
-      qFactor <- qConst[shortCode=as.integer(input$qUnit)][[1]]
-      qFactor <- qFactor@qUnitFactor
-      numericInput("qHigh", label = h5("qHigh"), value = round(qFactor * quantile(eList$Daily$Q, probs = 0.9),digits = 1))
-    }
-  })
+#   output$qLow <- renderUI({
+#     if(input$modelPlots %in% c("plotConcQSmooth","plotConcTimeSmooth","plotContours","plotDiffContours")){
+#       eList <- eList()
+#       qFactor <- qConst[shortCode=as.integer(input$qUnit)][[1]]
+#       qFactor <- qFactor@qUnitFactor
+#       numericInput("qLow", label = h5("qLow"), value = round(qFactor * quantile(eList$Daily$Q, probs = 0.1),digits = 1))
+#     }
+#   })
+#   
+#   output$qHigh <- renderUI({
+#     if(input$modelPlots %in% c("plotConcQSmooth","plotConcTimeSmooth","plotContours","plotDiffContours")){
+#       eList <- eList()
+#       qFactor <- qConst[shortCode=as.integer(input$qUnit)][[1]]
+#       qFactor <- qFactor@qUnitFactor
+#       numericInput("qHigh", label = h5("qHigh"), value = round(qFactor * quantile(eList$Daily$Q, probs = 0.9),digits = 1))
+#     }
+#   })
   
   output$qMid <- renderUI({
     if(input$modelPlots %in% c("plotConcQSmooth","plotConcTimeSmooth")){
@@ -472,7 +409,7 @@ shinyServer(function(input, output, session) {
     qUnit = as.integer(input$qUnit)
     paStart = as.integer(which(month.name == input$paStart))
     paLong = as.integer(input$paLong)
-    logScale = as.logical(as.integer(input$logScaleFlow))
+    logScale = input$logScaleFlow
     
     outText <- switch(input$flowPlots,
                       "plotFlowSingle" = paste0("plotFlowSingle(eList, istat=", stat,", qUnit = ", qUnit, ")"),
@@ -527,9 +464,9 @@ shinyServer(function(input, output, session) {
     yearStart = as.integer(input$yearRange[1])
     yearEnd = as.integer(input$yearRange[2])
     maxDiff = as.integer(input$maxDiff)
-    from = as.numeric(input$from)
-    to = as.numeric(input$to)
-    by = as.integer(input$by)
+    from = input$concRange[1]
+    to = input$concRange[2]
+    by = as.integer(input$by) + 1
 
     outText <- switch(input$modelPlots,
                       "plotConcTimeDaily" = paste0("plotConcTimeDaily(eList)"),
@@ -570,29 +507,11 @@ shinyServer(function(input, output, session) {
   })
 
   choseData <- reactive({
-    if(is.null(input$paramList)){
-      paramList = "All"
-    } else {
-      paramList = input$paramList
-    }
-    
-    if(is.null(input$trendTime)){
-      trendTime = "All"
-    } else {
-      trendTime = input$trendTime
-    }
-    
-    if(is.null(input$up)){
-      up = "Up"
-    } else {
-      up = input$up
-    }
-    
-    if(is.null(input$flux)){
-      fluxOrConc = "Conc"
-    } else {
-      fluxOrConc = input$flux
-    }
+
+    paramList = input$paramList
+    trendTime = input$trendTime
+    up = input$up
+    fluxOrConc = input$flux
     
     if(paramList == "All"){
       subData <- genInfo

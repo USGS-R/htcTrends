@@ -1,5 +1,4 @@
-library(usgsEGRET)
-library(smwrGraphs)
+library(EGRET)
 library(sbtools)
 library(leaflet)
 library(dplyr)
@@ -8,7 +7,7 @@ library(DT)
 tempFolder <- tempdir()
 
 source("auth.R")
-# source("D:/LADData/RCode/htcTrends/inst/condor/auth.R")
+
 #Raw Data
 rawDataID <- "5683f4b1e4b0a04ef4927c36"
 infoFile <- "infoData.rds"
@@ -58,65 +57,65 @@ shinyServer(function(input, output, session) {
     logScale = as.logical(as.integer(input$logScaleFlow))
 
     switch(input$flowPlots,
-           "plotFlowSingle" = plotFlowSingle(eList, istat=stat, qUnit = qUnit, USGSstyle = TRUE),
-           "plotSDLogQ" = plotSDLogQ(eList, USGSstyle = TRUE),
+           "plotFlowSingle" = plotFlowSingle(eList, istat=stat, qUnit = qUnit),
+           "plotSDLogQ" = plotSDLogQ(eList),
            "plotQTimeDaily" = plotQTimeDaily(eList, qUnit = qUnit, logScale = logScale),
            "plotFour" = plotFour(eList, qUnit = qUnit),
            "plotFourStats" = plotFourStats(eList, qUnit = qUnit)
            
     )
     
-    setPDF(basename="plot", layout = "landscape")
+    pdf("plot.pdf")
     switch(input$flowPlots,
-           "plotFlowSingle" = plotFlowSingle(eList, istat=stat, qUnit = qUnit, USGSstyle = TRUE),
-           "plotSDLogQ" = plotSDLogQ(eList, USGSstyle = TRUE),
+           "plotFlowSingle" = plotFlowSingle(eList, istat=stat, qUnit = qUnit),
+           "plotSDLogQ" = plotSDLogQ(eList),
            "plotQTimeDaily" = plotQTimeDaily(eList, qUnit = qUnit, logScale = logScale),
            "plotFour" = plotFour(eList, qUnit = qUnit),
            "plotFourStats" = plotFourStats(eList, qUnit = qUnit)
            
     )
-    graphics.off()
+    dev.off()
     
   })
 
   output$flowPlotsOut <- renderPlot({ 
-    setPNG()
+    # setPNG()
     flowPlotStuff()
-    graphics.off()    
+    # dev.off()    
   })
   
   dataPlotStuff <- reactive({
     
     eList <- eList()
     qUnit = as.integer(input$qUnit)
-    logScale = as.logical(as.integer(input$logScaleData))
+    logScale = input$logScaleData
 
     switch(input$dataPlots,
-           "boxConcMonth" = boxConcMonth(eList, logScale = logScale, USGSstyle = TRUE),
-           "boxQTwice" = boxQTwice(eList, qUnit = qUnit, USGSstyle = TRUE),
-           "plotConcTime" = plotConcTime(eList, logScale = logScale, USGSstyle = TRUE),
-           "plotConcQ" = plotConcQ(eList, qUnit = qUnit, logScale = logScale, USGSstyle = TRUE),
-           "multiPlotDataOverview" = multiPlotDataOverview(eList, qUnit = qUnit, USGSstyle = TRUE)
+           "boxConcMonth" = boxConcMonth(eList, logScale = logScale),
+           "boxQTwice" = boxQTwice(eList, qUnit = qUnit),
+           "plotConcTime" = plotConcTime(eList, logScale = logScale),
+           "plotConcQ" = plotConcQ(eList, qUnit = qUnit, logScale = logScale),
+           "multiPlotDataOverview" = multiPlotDataOverview(eList, qUnit = qUnit)
            
     )
     
-    setPDF(basename="plot", layout = "landscape")
+    pdf("plot.pdf")
     switch(input$dataPlots,
-           "boxConcMonth" = boxConcMonth(eList, logScale = logScale, USGSstyle = TRUE),
-           "boxQTwice" = boxQTwice(eList, qUnit = qUnit, USGSstyle = TRUE),
-           "plotConcTime" = plotConcTime(eList, logScale = logScale, USGSstyle = TRUE),
-           "plotConcQ" = plotConcQ(eList, qUnit = qUnit, logScale = logScale, USGSstyle = TRUE),
-           "multiPlotDataOverview" = multiPlotDataOverview(eList, qUnit = qUnit, USGSstyle = TRUE)
+           "boxConcMonth" = boxConcMonth(eList, logScale = logScale),
+           "boxQTwice" = boxQTwice(eList, qUnit = qUnit),
+           "plotConcTime" = plotConcTime(eList, logScale = logScale),
+           "plotConcQ" = plotConcQ(eList, qUnit = qUnit, logScale = logScale),
+           "multiPlotDataOverview" = multiPlotDataOverview(eList, qUnit = qUnit)
            
     )
-    graphics.off()
+    dev.off()
     
   })
   
   output$dataPlotsOut <- renderPlot({ 
-    setPNG()
+    # setPNG()
     dataPlotStuff()
-    graphics.off()  
+    # dev.off()  
   })
 
   modelPlotStuff <- reactive({
@@ -172,7 +171,7 @@ shinyServer(function(input, output, session) {
     if(is.null(input$logScaleModel)){
       logScale = FALSE
     } else {
-      logScale = as.logical(as.integer(input$logScaleModel))
+      logScale = input$logScaleModel
     }
     
     if(is.null(input$fluxUnit)){
@@ -187,17 +186,19 @@ shinyServer(function(input, output, session) {
       centerDate = input$centerDate
     }
     
-    if(is.null(input$yearStart)){
+    if(is.null(input$yearRange)){
       yearStart = ceiling(min(eList$Daily$DecYear))
-    } else {
-      yearStart = as.integer(input$yearStart)
-    }
-    
-    if(is.null(input$yearEnd)){
       yearEnd = floor(max(eList$Daily$DecYear))
     } else {
-      yearEnd = as.integer(input$yearEnd)
+      yearStart = as.integer(input$yearRange[1])
+      yearEnd = as.integer(input$yearRange[2])
     }
+    
+#     if(is.null(input$yearEnd)){
+#       yearEnd = floor(max(eList$Daily$DecYear))
+#     } else {
+#       yearEnd = as.integer(input$yearEnd)
+#     }
     
     if(is.null(input$maxDiff)){
       maxDiff = diff(range(eList$Sample$ConcAve))
@@ -228,56 +229,53 @@ shinyServer(function(input, output, session) {
     switch(input$modelPlots,
            "plotConcTimeDaily" = plotConcTimeDaily(eList),
            "plotFluxTimeDaily" = plotFluxTimeDaily(eList, fluxUnit=fluxUnit),
-           "plotConcPred" = plotConcPred(eList, logScale = logScale, USGSstyle = TRUE),
-           "plotFluxPred" = plotFluxPred(eList, fluxUnit=fluxUnit, USGSstyle = TRUE),
-           "plotResidPred" = plotResidPred(eList, USGSstyle = TRUE),
-           "plotResidQ" = plotResidQ(eList, qUnit=qUnit, USGSstyle = TRUE),
-           "plotResidTime" = plotResidTime(eList, USGSstyle = TRUE),
-           "boxResidMonth" = boxResidMonth(eList, USGSstyle = TRUE),
-           "boxConcThree" = boxConcThree(eList, USGSstyle = TRUE),
-           "plotConcHist" = plotConcHist(eList, USGSstyle = TRUE),
-           "plotFluxHist" = plotFluxHist(eList, fluxUnit=fluxUnit, USGSstyle = TRUE),
+           "plotConcPred" = plotConcPred(eList, logScale = logScale),
+           "plotFluxPred" = plotFluxPred(eList, fluxUnit=fluxUnit),
+           "plotResidPred" = plotResidPred(eList),
+           "plotResidQ" = plotResidQ(eList, qUnit=qUnit),
+           "plotResidTime" = plotResidTime(eList),
+           "boxResidMonth" = boxResidMonth(eList),
+           "boxConcThree" = boxConcThree(eList),
+           "plotConcHist" = plotConcHist(eList),
+           "plotFluxHist" = plotFluxHist(eList, fluxUnit=fluxUnit),
            "plotConcQSmooth" = plotConcQSmooth(eList, date1=date1,date2=date2, date3=date3,qLow=qLow,qHigh=qHigh),
            "plotConcTimeSmooth" = plotConcTimeSmooth(eList, q1=qLow, q2=qMid, q3=qHigh, logScale = logScale,
                                                      centerDate=centerDate,yearStart=yearStart, yearEnd=yearEnd),
-           "fluxBiasMulti" = fluxBiasMulti(eList, fluxUnit=fluxUnit, qUnit=qUnit, USGSstyle = TRUE),
+           "fluxBiasMulti" = fluxBiasMulti(eList, fluxUnit=fluxUnit, qUnit=qUnit),
            "plotContours" = plotContours(eList, qUnit=qUnit,yearStart = yearStart, yearEnd = yearEnd,
                                          qBottom = qLow, qTop=qHigh,contourLevels = seq(from, to, length.out =by)),
            "plotDiffContours" = plotDiffContours(eList, year0=yearStart,year1 = yearEnd, maxDiff = maxDiff,
                                                  qUnit=qUnit,qBottom = qLow, qTop=qHigh)
     )
     
-    setPDF(basename="plot", layout = "landscape")
+    pdf("plot.pdf")
       switch(input$modelPlots,
              "plotConcTimeDaily" = plotConcTimeDaily(eList),
              "plotFluxTimeDaily" = plotFluxTimeDaily(eList, fluxUnit=fluxUnit),
-             "plotConcPred" = plotConcPred(eList, logScale = logScale, USGSstyle = TRUE),
-             "plotFluxPred" = plotFluxPred(eList, fluxUnit=fluxUnit, USGSstyle = TRUE),
-             "plotResidPred" = plotResidPred(eList, USGSstyle = TRUE),
-             "plotResidQ" = plotResidQ(eList, qUnit=qUnit, USGSstyle = TRUE),
-             "plotResidTime" = plotResidTime(eList, USGSstyle = TRUE),
-             "boxResidMonth" = boxResidMonth(eList, USGSstyle = TRUE),
-             "boxConcThree" = boxConcThree(eList, USGSstyle = TRUE),
-             "plotConcHist" = plotConcHist(eList, USGSstyle = TRUE),
-             "plotFluxHist" = plotFluxHist(eList, fluxUnit=fluxUnit, USGSstyle = TRUE),
+             "plotConcPred" = plotConcPred(eList, logScale = logScale),
+             "plotFluxPred" = plotFluxPred(eList, fluxUnit=fluxUnit),
+             "plotResidPred" = plotResidPred(eList),
+             "plotResidQ" = plotResidQ(eList, qUnit=qUnit),
+             "plotResidTime" = plotResidTime(eList),
+             "boxResidMonth" = boxResidMonth(eList),
+             "boxConcThree" = boxConcThree(eList),
+             "plotConcHist" = plotConcHist(eList),
+             "plotFluxHist" = plotFluxHist(eList, fluxUnit=fluxUnit),
              "plotConcQSmooth" = plotConcQSmooth(eList, date1=date1,date2=date2, date3=date3,qLow=qLow,qHigh=qHigh),
              "plotConcTimeSmooth" = plotConcTimeSmooth(eList, q1=qLow, q2=qMid, q3=qHigh, logScale = logScale,
                                                        centerDate=centerDate,yearStart=yearStart, yearEnd=yearEnd),
-             "fluxBiasMulti" = fluxBiasMulti(eList, fluxUnit=fluxUnit, qUnit=qUnit, USGSstyle = TRUE),
+             "fluxBiasMulti" = fluxBiasMulti(eList, fluxUnit=fluxUnit, qUnit=qUnit),
              "plotContours" = plotContours(eList, qUnit=qUnit,yearStart = yearStart, yearEnd = yearEnd,
                                            qBottom = qLow, qTop=qHigh,contourLevels = seq(from, to, length.out =by)),
              "plotDiffContours" = plotDiffContours(eList, year0=yearStart,year1 = yearEnd, maxDiff = maxDiff,
                                                    qUnit=qUnit,qBottom = qLow, qTop=qHigh)
       )
-    graphics.off()
+    dev.off()
     
   })
   
   output$modelPlotsOut <- renderPlot({
-    setPNG()
     modelPlotStuff()
-    graphics.off()
-  
   })
   
   output$from <- renderUI({
@@ -403,12 +401,17 @@ shinyServer(function(input, output, session) {
     }
   })
   
-  output$dataLog <- renderUI({
-    if(input$dataPlots %in% c("boxConcMonth", "plotConcTime", "plotConcQ")){
-      radioButtons("logScaleData", label = h4("Scale"),
-                   choices = list("Linear" = 0, "Log" = 1), 
-                   selected = 0)
+  output$maxDiff <- renderUI({
+    if(input$modelPlots %in% c("plotDiffContours")){
+      eList <- eList()
+      numericInput("maxDiff", label = h5("maxDiff"), value = diff(range(eList$Sample$ConcAve)))
     }
+  })
+
+  observe({
+    eList <- eList()
+    updateSliderInput(session, "yearRange", 
+                      min = ceiling(min(eList$Daily$DecYear)), max = floor(max(eList$Daily$DecYear)))
   })
   
   output$date1 <- renderUI({
@@ -416,27 +419,6 @@ shinyServer(function(input, output, session) {
       eList <- eList()
       dateInput("date1", label = h5("date1"), 
                 value = as.Date(quantile(eList$Daily$Date, type=1, probs = 0.1), origin="1970-01-01"))
-    }
-  })
-  
-  output$yearStart <- renderUI({
-    if(input$modelPlots %in% c("plotConcTimeSmooth","plotContours","plotDiffContours")){
-      eList <- eList()
-      numericInput("yearStart", label = h5("yearStart"), value = ceiling(min(eList$Daily$DecYear)))
-    }
-  })
-  
-  output$maxDiff <- renderUI({
-    if(input$modelPlots %in% c("plotDiffContours")){
-      eList <- eList()
-      numericInput("maxDiff", label = h5("maxDiff"), value = diff(range(eList$Sample$ConcAve)))
-    }
-  })
-  
-  output$yearEnd <- renderUI({
-    if(input$modelPlots %in% c("plotConcTimeSmooth","plotContours","plotDiffContours")){
-      eList <- eList()
-      numericInput("yearEnd", label = h5("yearEnd"), value = floor(max(eList$Daily$DecYear)))
     }
   })
   
@@ -448,17 +430,17 @@ shinyServer(function(input, output, session) {
     }
   })
   
-  output$centerDate <- renderUI({
-    if(input$modelPlots == "plotConcQSmooth"){
-      textInput("centerDate", label = h5("centerDate"), value = "04-01")
-    }
-  })
-  
   output$date3 <- renderUI({
     if(input$modelPlots == "plotConcQSmooth"){
       eList <- eList()
       dateInput("date3", label = h5("date3"), 
                 value = as.Date(quantile(eList$Daily$Date, type=1, probs = 0.9), origin="1970-01-01"))
+    }
+  })
+  
+  output$centerDate <- renderUI({
+    if(input$modelPlots == "plotConcQSmooth"){
+      textInput("centerDate", label = h5("centerDate"), value = "04-01")
     }
   })
   
@@ -488,15 +470,7 @@ shinyServer(function(input, output, session) {
       numericInput("qMid", label = h5("qMid"), value = round(qFactor * quantile(eList$Daily$Q, probs = 0.5),digits = 1))
     }
   })
-  
-  output$modelLog <- renderUI({
-    if(input$modelPlots %in% c("plotConcPred","plotConcQSmooth","plotConcTimeSmooth")){
-      radioButtons("logScaleModel", label = h4("Scale"),
-                   choices = list("Linear" = 0, "Log" = 1), 
-                   selected = 0)
-    }
-  })
-  
+
   output$flowStatistic <- renderUI({
     if(input$flowPlots == "plotFlowSingle"){
       selectInput("flowStat", label = "Flow Statistic", 
@@ -559,7 +533,7 @@ shinyServer(function(input, output, session) {
     qUnit = as.integer(input$qUnit)
     paStart = as.integer(which(month.name == input$paStart))
     paLong = as.integer(input$paLong)
-    logScale = as.logical(as.integer(input$logScaleData))
+    logScale = input$logScaleData
 
     outText <- switch(input$dataPlots,
                       "boxConcMonth" = paste0("boxConcMonth(eList, logScale = ", logScale,")"),
@@ -626,17 +600,19 @@ shinyServer(function(input, output, session) {
       centerDate = input$centerDate
     }
     
-    if(is.null(input$yearStart)){
+    if(is.null(input$yearRange)){
       yearStart = ceiling(min(eList$Daily$DecYear))
-    } else {
-      yearStart = as.integer(input$yearStart)
-    }
-    
-    if(is.null(input$yearEnd)){
       yearEnd = floor(max(eList$Daily$DecYear))
     } else {
-      yearEnd = as.integer(input$yearEnd)
+      yearStart = as.integer(input$yearRange[1])
+      yearEnd = as.integer(input$yearRange[2])
     }
+    
+#     if(is.null(input$yearEnd)){
+#       yearEnd = floor(max(eList$Daily$DecYear))
+#     } else {
+#       yearEnd = as.integer(input$yearEnd)
+#     }
     
     if(is.null(input$maxDiff)){
       maxDiff = diff(range(eList$Sample$ConcAve))
@@ -701,15 +677,7 @@ shinyServer(function(input, output, session) {
       setView(lng = -99.5, lat = 40, zoom=4) 
     
   })
-  
-  output$paramList <- renderUI({
 
-    selectInput("paramList", label = "Parameter", 
-                choices = c("All",unique(genInfo$param_nm)),
-                 multiple = FALSE)
-
-  })
-  
   choseData <- reactive({
     if(is.null(input$paramList)){
       paramList = "All"
@@ -762,18 +730,18 @@ shinyServer(function(input, output, session) {
         if(fluxOrConc == "Flux"){
           if(up == "Up"){
             subData$colData <- subData$likeFUp
-            legendTitle <- "Flux is Upwards"
+            legendTitle <- "Probablity that\n Flux is Upwards"
           } else {
             subData$colData <- subData$likeFDown
-            legendTitle <- "Flux is Downwards"
+            legendTitle <- "Probablity that\nFlux is Downwards"
           }
         } else {
           if(up == "Up"){
             subData$colData <- subData$likeCUp
-            legendTitle <- "Conc is Upwards"
+            legendTitle <- "Probablity that\nConc is Upwards"
           } else {
             subData$colData <- subData$likeCDown
-            legendTitle <- "Conc is Downwards"
+            legendTitle <- "Probablity that\nConc is Downwards"
           }
         }
         
@@ -798,7 +766,6 @@ shinyServer(function(input, output, session) {
       } else {
         pal = colorBin(col_types, subData$colData, bins = c(0,leg_vals,1))
       }
-      
       
       leafletProxy("mymap", data=subData) %>%
         clearMarkers() %>%

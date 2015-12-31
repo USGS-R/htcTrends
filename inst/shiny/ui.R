@@ -1,4 +1,16 @@
 library(shinydashboard)
+tempFolder <- tempdir()
+source("auth.R")
+
+#Raw Data
+rawDataID <- "5683f4b1e4b0a04ef4927c36"
+infoFile <- "infoData.rds"
+item_file_download(rawDataID, names=infoFile,
+                   destinations = file.path(tempFolder,infoFile), 
+                   overwrite_file=TRUE)
+
+genInfo <- readRDS(file.path(tempFolder,infoFile))
+
 header <- dashboardHeader(title = "NAWQA Trends Exploration")
 
 body <- dashboardBody(
@@ -63,7 +75,9 @@ body <- dashboardBody(
 sidebar <- dashboardSidebar(
   conditionalPanel(
     condition = "input.tabvals == 'choose'",
-    uiOutput("paramList"),
+    selectInput("paramList", label = "Parameter", 
+                choices = c("All",unique(genInfo$param_nm)),
+                multiple = FALSE),
     selectInput("trendTime", label = "Trend Timeline", 
                 choices = c("All","1972-2012","1982-2012","1992-2012","2002-2012"),
                 multiple = FALSE),
@@ -92,8 +106,6 @@ sidebar <- dashboardSidebar(
                   uiOutput("qLow"),
                   uiOutput("qMid"),
                   uiOutput("qHigh"),
-                  uiOutput("yearStart"),
-                  uiOutput("yearEnd"),
                   uiOutput("centerDate"),
                   uiOutput("maxDiff"),
                   uiOutput("from"),
@@ -101,11 +113,32 @@ sidebar <- dashboardSidebar(
                   uiOutput("by")
     ),
     conditionalPanel(
+      condition = paste("input.analyzeChoices == 'exploreModel' && (",
+                    'input.modelPlots == "plotConcTimeSmooth" ||',
+                    'input.modelPlots == "plotContours" ||',
+                    'input.modelPlots == "plotDiffContours")'),
+      sliderInput("yearRange", "Year Range:",sep = "",
+                  min = 1970, max = 2012, value = c(1982,2012))      
+    ),
+    conditionalPanel(
+      condition = paste("input.analyzeChoices == 'exploreModel' && (",
+                        'input.modelPlots == "plotConcPred" ||',
+                        'input.modelPlots == "plotConcQSmooth" ||',
+                        'input.modelPlots == "plotConcTimeSmooth")'),
+      checkboxInput("logScaleModel", label = "Log Scale", value = TRUE)      
+    ),    
+    conditionalPanel(
       condition = "input.analyzeChoices == 'exploreData'",
       selectInput("dataPlots", label = "Choose Plot:", 
                   choices = c("boxConcMonth","boxQTwice","plotConcTime","plotConcQ","multiPlotDataOverview"),
-                  selected = "multiPlotDataOverview", multiple = FALSE),
-      uiOutput("dataLog")
+                  selected = "multiPlotDataOverview", multiple = FALSE)
+    ),
+    conditionalPanel(
+      condition = paste("input.analyzeChoices == 'exploreData' && (",
+                        'input.dataPlots == "boxConcMonth" ||',
+                        'input.dataPlots == "plotConcTime" ||',
+                        'input.dataPlots == "plotConcQ")'),
+      checkboxInput("logScaleData", label = "Log Scale", value = FALSE)     
     ),
     conditionalPanel(
       condition = "input.analyzeChoices == 'flowHistory'",

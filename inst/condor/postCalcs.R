@@ -1,3 +1,5 @@
+library(readr)
+library(EGRET)
 setwd("D:/LADData/RCode/htcTrends/inst/extdata/results")
 
 Mode <- function(x) {
@@ -129,3 +131,20 @@ write.csv(tableChangeFlux, file="tableChangeFlux.csv", row.names=FALSE)
 write.csv(tableFlowChange, file="tableFlowChange.csv", row.names=FALSE)
 write.csv(tableResults, file="tableResults.csv", row.names=FALSE)
 write.csv(flowStatistics, file="flowStatistics.csv", row.names=FALSE)
+
+library(sbtools)
+source("auth.R")
+# setwd("D:/LADData/RCode/htcTrends/inst/extdata/results")
+item_replace_files("5684401ce4b0a04ef493313b", c("INFO.csv",
+                                                 "bootOut.csv",
+                                                 "tableChangeConc.csv",
+                                                 "tableChangeFlux.csv",
+                                                 "tableFlowChange.csv",
+                                                 "tableResults.csv",
+                                                 "flowStatistics.csv"))
+item_replace_files("56844047e4b0a04ef493313e", c("bootOut.rds",
+                                                 "tableChangeConc.rds",
+                                                 "tableChangeFlux.rds",
+                                                 "tableFlowChange.rds",
+                                                 "tableResults.rds",
+                                                 "flowStatistics.rds"))

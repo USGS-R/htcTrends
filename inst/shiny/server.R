@@ -48,11 +48,11 @@ shinyServer(function(input, output, session) {
     x <- query_item_identifier(type='naqwa', scheme = 'dataII', key = id)
     itemsInFolder <- item_list_files(x$id)
     trendsFile <- itemsInFolder$fname[grep(pattern = ".RData", itemsInFolder$fname)]
-    item_file_download(x$id, names=trendsFile,
-                       destinations = file.path(tempFolder,trendsFile), 
+    item_file_download(x$id, names=trendsFile[1],
+                       destinations = file.path(tempFolder,trendsFile[1]), 
                        overwrite_file=TRUE) 
     
-    load(file.path(tempFolder,trendsFile))
+    load(file.path(tempFolder,trendsFile[1]))
     
     eBoot
   })
@@ -245,7 +245,17 @@ shinyServer(function(input, output, session) {
     content = function(file) {
       file.copy("plot.pdf", file)
     }
-)
+  )
+  
+  output$downloadTrendPlot <- downloadHandler(
+    
+    filename = function() {
+      paste(input$trendPlots, "pdf", sep = ".")
+    },
+    content = function(file) {
+      file.copy("plot.pdf", file)
+    }
+  )
   
   output$downloadDataPlot <- downloadHandler(
     filename = function() {

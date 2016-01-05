@@ -135,7 +135,7 @@ shinyServer(function(input, output, session) {
     
     eList <- eList()
     rawBoot <- rawBoot()
-    
+    INFO <- eList$INFO
     caseSetUp <- data.frame(year1=min(c(INFO$trend_72_12_start,
                                         INFO$trend_82_12_start,
                                         INFO$trend_92_12_start,
@@ -412,7 +412,8 @@ shinyServer(function(input, output, session) {
   })
   
   output$trendCode <- renderPrint({
-    
+    eList <- eList()
+    INFO <- eList$INFO
     paStart = as.integer(which(month.name == input$paStart))
     paLong = as.integer(input$paLong)
     

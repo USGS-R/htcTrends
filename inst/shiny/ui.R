@@ -14,9 +14,8 @@ genInfo <- readRDS(file.path(tempFolder,infoFile))
 header <- dashboardHeader(title = "NAWQA Trends Exploration")
 
 body <- dashboardBody(
-  textInput("inText",
-            value = "Choose data from map or chart, then click 'Get Data'",
-            label = "", width = 800),
+  uiOutput("textMessage"),
+  HTML("Choose data from map or chart, then click 'Get Data'"),
   tabsetPanel(id='tabvals',
     tabPanel("Choose Data",value = "choose", 
         tabsetPanel(id = "tabs",
@@ -124,7 +123,7 @@ sidebar <- dashboardSidebar(
                         'input.modelPlots == "plotDiffContours" ||',
                         'input.modelPlots == "plotContours")'),
       sliderInput("flowRange", "Discharge Range:",sep = "",
-                  min = 0, max = 1, value = c(0.1,0.9))        
+                  min = 0, max = 1, value = c(0.1,0.9), round = TRUE)        
     ), 
     conditionalPanel(
       condition = paste("input.analyzeChoices == 'exploreModel' && ",
@@ -152,7 +151,7 @@ sidebar <- dashboardSidebar(
       condition = paste("input.analyzeChoices == 'exploreModel' && ",
                         'input.modelPlots == "plotContours"'),
       sliderInput("concRange", "Concentration Range:",sep = "",
-                  min = 0, max = 1, value = c(0.1,0.9)),
+                  min = 0, max = 1, value = c(0.1,0.9), round = TRUE),
       numericInput("by", label = h5("Number of divisions"), value = 5) 
     ),  
     conditionalPanel(

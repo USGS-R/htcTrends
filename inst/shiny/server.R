@@ -298,7 +298,7 @@ shinyServer(function(input, output, session) {
     eList <- eList()
     contours <- pretty(c(min(eList$surfaces[,,3]), max(eList$surfaces[,,3])), n=5)
     updateSliderInput(session, "concRange", 
-                      min = contours[1], max = contours[length(contours)])
+                      min = 0.5*contours[1], max = 2*contours[length(contours)])
   })
   
   observe({
@@ -306,8 +306,8 @@ shinyServer(function(input, output, session) {
     qFactor <- qConst[shortCode=as.integer(input$qUnit)][[1]]
     qFactor <- qFactor@qUnitFactor
     updateSliderInput(session, "flowRange", 
-                      min = as.numeric(round(qFactor * quantile(eList$Daily$Q, probs = 0.1),digits = 1)),
-                      max = as.numeric(round(qFactor * quantile(eList$Daily$Q, probs = 0.9),digits = 1)))
+                      min = 0.5*as.numeric(round(qFactor * quantile(eList$Daily$Q, probs = 0.1),digits = 1)),
+                      max = 2*as.numeric(round(qFactor * quantile(eList$Daily$Q, probs = 0.9),digits = 1)))
   })    
   
   observe({
@@ -367,9 +367,6 @@ shinyServer(function(input, output, session) {
                      "destinations = file.path(tempFolder,'eList.rds'),\n", 
                      "overwrite_file=TRUE)\n",
                 "eList_Start <- readRDS(file.path(tempFolder,'eList.rds'))"))
-
-
-    
     
   })
   
@@ -580,11 +577,10 @@ shinyServer(function(input, output, session) {
     
   })
 
-  observe({
+  output$textMessage <- renderUI({
     eList <- eList()
     INFO <- eList$INFO
-    updateTextInput(session, "inText", 
-                    value = paste0("Data retrieved from sciencebase: ",INFO$station_nm))
+    HTML(paste0("Data retrieved from sciencebase: ",INFO$station_nm))
   
   })
 

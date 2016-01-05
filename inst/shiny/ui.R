@@ -30,11 +30,14 @@ body <- dashboardBody(
           )),
     tabPanel("Analyze Data",value = "analyze",
        tabsetPanel(selected = "exploreData",id = "analyzeChoices",
+         tabPanel(title = tagList("Get Data",shiny::icon("folder-o")),
+                  value = "getData",
+                  h4("R Code to retrieve data from sciencebase:"),
+                  verbatimTextOutput("getCode")
+         ),
          tabPanel(title = tagList("MetaData",shiny::icon("bars")),
                   value = "metaData",
-                  fluidRow(column(1),
-                           column(11,
-                                  DT::dataTableOutput('metaData')))
+                  DT::dataTableOutput('metaData')
          ),
          tabPanel(title = tagList("Flow History",shiny::icon("bar-chart")),
                  value = "flowHistory",
@@ -51,11 +54,10 @@ body <- dashboardBody(
                   downloadButton('downloadDataPlot', 'Download Plot')),
          tabPanel(title = tagList("Explore Model",shiny::icon("bar-chart")),
                   value = "exploreModel",
-
-                           h4("R Code:"),
-                           verbatimTextOutput("modelCode"),
-                           plotOutput("modelPlotsOut"),
-                           downloadButton('downloadModelPlot', 'Download Plot'))
+                 h4("R Code:"),
+                 verbatimTextOutput("modelCode"),
+                 plotOutput("modelPlotsOut"),
+                 downloadButton('downloadModelPlot', 'Download Plot'))
              )
             )
         ),

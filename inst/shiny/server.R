@@ -354,6 +354,25 @@ shinyServer(function(input, output, session) {
     
   })
   
+  output$getCode <- renderPrint({
+    
+    id <- idText()
+    
+    HTML(paste0("library(sbtools)\n",
+                "authenticate()\n",
+                "id <- '", id, "'\n",
+                "tempFolder <- tempdir()\n",
+                "x <- query_item_identifier(type='naqwa', scheme = 'dataII', key = id)\n",
+                "item_file_download(x$id, names='eList.rds',\n",
+                     "destinations = file.path(tempFolder,'eList.rds'),\n", 
+                     "overwrite_file=TRUE)\n",
+                "eList_Start <- readRDS(file.path(tempFolder,'eList.rds'))"))
+
+
+    
+    
+  })
+  
   output$dataCode <- renderPrint({
 
     qUnit = as.integer(input$qUnit)

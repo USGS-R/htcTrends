@@ -192,7 +192,7 @@ filesWeWant <- "CIAnnualResults.csv"
 source("auth.R")
 topFolderID <- "5679a0e9e4b0da412f4fc2b7" #Phase II
 x <- query_item_identifier(type='naqwa', scheme = 'dataII', 
-                           key = paste(INFO$paramshortname, INFO$site_no, sep="_"))
+                           key = paste(INFO$paramShortName, INFO$Site_no, sep="_"))
 
 item_append_files(x$id, files = "CIAnnualResults.csv")
 

@@ -1,4 +1,5 @@
 library(EGRET)
+library(EGRETci)
 library(sbtools)
 library(leaflet)
 library(dplyr)
@@ -79,9 +80,7 @@ shinyServer(function(input, output, session) {
   })
 
   output$flowPlotsOut <- renderPlot({ 
-    # setPNG()
     flowPlotStuff()
-    # dev.off()    
   })
   
   dataPlotStuff <- reactive({
@@ -115,6 +114,36 @@ shinyServer(function(input, output, session) {
   output$dataPlotsOut <- renderPlot({ 
     dataPlotStuff()
   })
+  
+  trendPlotStuff <- reactive({
+    
+    qUnit = as.integer(input$qUnit)
+    logScale = input$logScaleData
+     
+    switch(input$trendPlots,
+           "plotHistogramTrend" = plotHistogramTrend(eList, logScale = logScale)
+#            "plotConcTime" = plotConcTime(eList, logScale = logScale),
+#            "plotConcQ" = plotConcQ(eList, qUnit = qUnit, logScale = logScale),
+#            "multiPlotDataOverview" = multiPlotDataOverview(eList, qUnit = qUnit)
+#            
+    )
+    
+    pdf("plot.pdf")
+    switch(input$trendPlots,
+           "plotHistogramTrend" = plotHistogramTrend(eList, logScale = logScale)
+#            "boxQTwice" = boxQTwice(eList, qUnit = qUnit),
+#            "plotConcTime" = plotConcTime(eList, logScale = logScale),
+#            "plotConcQ" = plotConcQ(eList, qUnit = qUnit, logScale = logScale),
+#            "multiPlotDataOverview" = multiPlotDataOverview(eList, qUnit = qUnit)
+           
+    )
+    dev.off()
+    
+  })
+#   
+#   output$trendPlotsOut <- renderPlot({ 
+#     trendPlotStuff()
+#   })
 
   modelPlotStuff <- reactive({
     

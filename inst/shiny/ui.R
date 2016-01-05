@@ -56,7 +56,13 @@ body <- dashboardBody(
                  h4("R Code:"),
                  verbatimTextOutput("modelCode"),
                  plotOutput("modelPlotsOut"),
-                 downloadButton('downloadModelPlot', 'Download Plot'))
+                 downloadButton('downloadModelPlot', 'Download Plot')),
+         tabPanel(title = tagList("Explore Trend",shiny::icon("bar-chart")),
+                  value = "exploreTrend",
+                  h4("R Code:"),
+                  verbatimTextOutput("trendCode"),
+                  plotOutput("trendPlotsOut"),
+                  downloadButton('downloadTrendPlot', 'Download Plot'))         
              )
             )
         ),

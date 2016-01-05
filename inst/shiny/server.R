@@ -411,6 +411,30 @@ shinyServer(function(input, output, session) {
     
   })
   
+  output$trendCode <- renderPrint({
+    
+    paStart = as.integer(which(month.name == input$paStart))
+    paLong = as.integer(input$paLong)
+    
+    outText <- switch(input$trendPlots,
+                      "plotHistogramTrendConc" = paste0("plotHistogramTrend(eList, eBoot, caseSetUp, flux=FALSE)"),
+                      "plotHistogramTrendFlux" = paste0("plotHistogramTrend(eList, eBoot, caseSetUp, flux=TRUE)")
+                      
+    )
+    
+    HTML(paste0("caseSetUp <- data.frame(year1=", min(c(INFO$trend_72_12_start,
+                                                        INFO$trend_82_12_start,
+                                                        INFO$trend_92_12_start,
+                                                        INFO$trend_02_12_start),na.rm = TRUE),",\n",
+                                            "year2 = ", INFO$trend_end,",\n",
+                                            "nBoot = ", INFO$nBoot,",\n",
+                                            "bootBreak = ", INFO$bootBreak,",\n",
+                                            "blockLength = ", INFO$blockLength, ")\n",
+                "setPA(eList, paStart = ",paStart, ", paLong = ", paLong,")\n",
+                outText))
+    
+  })
+  
   output$getCode <- renderPrint({
     
     id <- idText()

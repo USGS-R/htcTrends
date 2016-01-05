@@ -201,6 +201,12 @@ sidebar <- dashboardSidebar(
                         'input.flowPlots == "plotQTimeDaily"'),
       checkboxInput("logScaleFlow", label = "Log Scale", value = FALSE)     
     ),
+    conditionalPanel(
+      condition = "input.analyzeChoices == 'exploreTrend'",
+      selectInput("trendPlots", label = "Choose Plot:", 
+                  choices = c("plotHistogramTrendConc","plotHistogramTrendFlux"),
+                  selected = "plotHistogramTrendConc", multiple = FALSE)
+    ),
     selectInput("paStart", label = "Starting Month", 
                 choices = c(month.name),
                 selected = "October", multiple = FALSE),

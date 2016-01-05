@@ -41,6 +41,22 @@ shinyServer(function(input, output, session) {
     eList_Start <- readRDS(file.path(tempFolder,"eList.rds"))
   })
   
+  rawBoot <- reactive({
+    eList_Start <- eList_Start()    
+    source("config.R")
+    id <- idText()
+    x <- query_item_identifier(type='naqwa', scheme = 'dataII', key = id)
+    itemsInFolder <- item_list_files(x$id)
+    trendsFile <- itemsInFolder$fname[grep(pattern = ".RData", itemsInFolder$fname)]
+    item_file_download(x$id, names=trendsFile,
+                       destinations = file.path(tempFolder,trendsFile), 
+                       overwrite_file=TRUE) 
+    
+    load(file.path(tempFolder,trendsFile))
+    
+    eBoot
+  })
+  
   eList <- reactive({
 
     eList_Start <- eList_Start()      
@@ -117,33 +133,35 @@ shinyServer(function(input, output, session) {
   
   trendPlotStuff <- reactive({
     
-    qUnit = as.integer(input$qUnit)
-    logScale = input$logScaleData
+    eList <- eList()
+    rawBoot <- rawBoot()
+    
+    caseSetUp <- data.frame(year1=min(c(INFO$trend_72_12_start,
+                                        INFO$trend_82_12_start,
+                                        INFO$trend_92_12_start,
+                                        INFO$trend_02_12_start),na.rm = TRUE),
+                            year2 = INFO$trend_end,
+                            nBoot=INFO$nBoot,
+                            bootBreak = INFO$bootBreak,
+                            blockLength = INFO$blockLength)
      
     switch(input$trendPlots,
-           "plotHistogramTrend" = plotHistogramTrend(eList, logScale = logScale)
-#            "plotConcTime" = plotConcTime(eList, logScale = logScale),
-#            "plotConcQ" = plotConcQ(eList, qUnit = qUnit, logScale = logScale),
-#            "multiPlotDataOverview" = multiPlotDataOverview(eList, qUnit = qUnit)
-#            
+           "plotHistogramTrendConc" = plotHistogramTrend(eList, rawBoot, caseSetUp, flux = FALSE),
+           "plotHistogramTrendFlux" = plotHistogramTrend(eList, rawBoot, caseSetUp, flux = TRUE)
     )
     
     pdf("plot.pdf")
     switch(input$trendPlots,
-           "plotHistogramTrend" = plotHistogramTrend(eList, logScale = logScale)
-#            "boxQTwice" = boxQTwice(eList, qUnit = qUnit),
-#            "plotConcTime" = plotConcTime(eList, logScale = logScale),
-#            "plotConcQ" = plotConcQ(eList, qUnit = qUnit, logScale = logScale),
-#            "multiPlotDataOverview" = multiPlotDataOverview(eList, qUnit = qUnit)
-           
+           "plotHistogramTrendConc" = plotHistogramTrend(eList, rawBoot, caseSetUp, flux=FALSE),
+           "plotHistogramTrendFlux" = plotHistogramTrend(eList, rawBoot, caseSetUp, flux = TRUE)
     )
     dev.off()
     
   })
-#   
-#   output$trendPlotsOut <- renderPlot({ 
-#     trendPlotStuff()
-#   })
+  
+  output$trendPlotsOut <- renderPlot({ 
+    trendPlotStuff()
+  })
 
   modelPlotStuff <- reactive({
     

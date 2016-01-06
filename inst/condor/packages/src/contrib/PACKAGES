@@ -229,12 +229,12 @@ MD5sum: 8333b96a86b8c03fe5af2391e99291fb
 NeedsCompilation: no
 
 Package: smwrQW
-Version: 0.7.5
+Version: 0.7.7
 Depends: smwrBase, smwrGraphs, smwrStats
-Imports: lubridate, methods, survival
+Imports: survival
 Suggests: smwrData, cluster, NADA, psych
 License: CC0
-MD5sum: 2dd84f3df61812c890ffdc93317a0417
+MD5sum: 5c71bc3ee853214e6d2b4a8f9d026245
 NeedsCompilation: yes
 
 Package: smwrStats
@@ -291,12 +291,12 @@ MD5sum: f519b82fb2946ba36c08c3b0e2260a9b
 NeedsCompilation: yes
 
 Package: usgsEGRET
-Version: 0.0.4
+Version: 0.0.5
 Depends: R (>= 3.0)
 Imports: survival, fields, lubridate, methods, smwrGraphs, smwrQW, utils, graphics,
          stats, grDevices, truncnorm
 Suggests: xtable, knitr, rmarkdown, extrafont, testthat, rkt
 License: CC0
-MD5sum: a8b4c645a40b0e18a178b933443a9c21
+MD5sum: 4887a6a7ceb80634b095e421511222e1
 NeedsCompilation: no
 

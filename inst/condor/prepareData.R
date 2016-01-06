@@ -24,7 +24,7 @@ saveRDS(infoDataTotal, file="infoData.rds")
 saveRDS(sampleDataTotal, file="sampleData.rds")
 
 
-tools::write_PACKAGES("inst/condor/packages/src/contrib",type="source", verbose=TRUE)
+tools::write_PACKAGES("D:/LADData/RCode/htcTrends/inst/condor/packages/src/contrib",type="source", verbose=TRUE)
 
 sampleSite <- unique(infoDataTotal$Site_no)
 flowData <- data.frame(dateTime = as.Date(NA), value=as.numeric(NA), site=as.character(NA))

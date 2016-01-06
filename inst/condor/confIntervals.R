@@ -1,7 +1,7 @@
 #Setup libraries
 # dir.create('rLibs')
 # 
-install.packages(c("EGRETci","usgsEGRET","smwrGraphs","sbtools"),
+install.packages(c("EGRETci","usgsEGRET","smwrGraphs"),
                  repo="file:packages",type="source",
                  dependencies=c("Depends","Imports"), lib='rLibs')
 # install.packages(c("EGRETci","usgsEGRET","smwrGraphs","reshape2","sbtools"),
@@ -9,17 +9,18 @@ install.packages(c("EGRETci","usgsEGRET","smwrGraphs","sbtools"),
 #                  dependencies=c("Depends","Imports"), lib='rLibs')
 args <- commandArgs(trailingOnly = TRUE)
 
-i <- as.numeric(args[1])+2 #Should be 1
+i <- as.numeric(args[1])+1 #Should be 1
 
 suppressPackageStartupMessages(library(EGRETci, quietly = TRUE, lib.loc = 'rLibs'))
 suppressPackageStartupMessages(library(usgsEGRET, quietly = TRUE, lib.loc = 'rLibs'))
-suppressPackageStartupMessages(library(sbtools, quietly = TRUE, lib.loc = 'rLibs'))
+# suppressPackageStartupMessages(library(sbtools, quietly = TRUE, lib.loc = 'rLibs'))
 suppressPackageStartupMessages(library(smwrGraphs, quietly = TRUE, lib.loc = 'rLibs'))
 
 infoDataTotal <- readRDS("infoData.rds")
 sampleDataTotal <- readRDS("sampleData.rds")
 flowDataTotal <- readRDS("flowData.rds")
 
+for(i in 1:2222){
 flowSite <- infoDataTotal$Gage_number[i]
 sampleSite <- infoDataTotal$Site_no[i]
 parameter <- infoDataTotal$paramShortName[i]
@@ -32,6 +33,7 @@ names(Sample)[names(Sample) == "date"] <- c("dateTime")
 Sample <- Sample[order(Sample$dateTime),]
 Sample <- populateSampleColumns(Sample)
 
+}
 flowFile <- flowDataTotal[flowDataTotal$site == sampleSite, c("dateTime", "value")]
 Daily <- populateDaily(flowFile,1,interactive=FALSE)
 
@@ -187,14 +189,14 @@ concUSGS <- function(CIAnnualResults, eList, yearStart, yearEnd, ...){
   addXY(as.Date(paste0(as.integer(CIAnnualResults$Year),"-04-01")), CIAnnualResults$FNConcHigh, Plot=list(color="black", type="dashed"))
   
 }
-filesWeWant <- "CIAnnualResults.csv"
+filesWeWant <- c("CIAnnualResults.csv","CIAnnualResults.rds")
 
-source("auth.R")
-topFolderID <- "5679a0e9e4b0da412f4fc2b7" #Phase II
-x <- query_item_identifier(type='naqwa', scheme = 'dataII', 
-                           key = paste(INFO$paramShortName, INFO$Site_no, sep="_"))
-
-item_append_files(x$id, files = "CIAnnualResults.csv")
+# source("auth.R")
+# topFolderID <- "5679a0e9e4b0da412f4fc2b7" #Phase II
+# x <- query_item_identifier(type='naqwa', scheme = 'dataII', 
+#                            key = paste(INFO$paramShortName, INFO$Site_no, sep="_"))
+# 
+# item_append_files(x$id, files = "CIAnnualResults.csv")
 
 if(INFO$trend_92_12){
   setPDF(basename = "combo_92")
@@ -204,7 +206,7 @@ if(INFO$trend_92_12){
   AA.gr <- setGraph(2, AA.lo)
   concUSGS(CIAnnualResults, eList, INFO$trend_92_12_start, INFO$trend_end, margin=AA.gr)
   graphics.off()  
-  item_append_files(x$id, files = "combo_92.pdf")
+  # item_append_files(x$id, files = "combo_92.pdf")
   filesWeWant <- c(filesWeWant, "combo_92.pdf")
 }
 
@@ -216,7 +218,7 @@ if(INFO$trend_82_12){
   AA.gr <- setGraph(2, AA.lo)
   concUSGS(CIAnnualResults, eList, INFO$trend_82_12_start, INFO$trend_end, margin=AA.gr)
   graphics.off()  
-  item_append_files(x$id, files = "combo_82.pdf")
+  # item_append_files(x$id, files = "combo_82.pdf")
   filesWeWant <- c(filesWeWant, "combo_82.pdf")
 }
 
@@ -228,7 +230,7 @@ if(INFO$trend_72_12){
   AA.gr <- setGraph(2, AA.lo)
   concUSGS(CIAnnualResults, eList, INFO$trend_72_12_start, INFO$trend_end, margin=AA.gr)
   graphics.off()  
-  item_append_files(x$id, files = "combo_72.pdf")
+  # item_append_files(x$id, files = "combo_72.pdf")
   filesWeWant <- c(filesWeWant, "combo_72.pdf")
 }
 if(INFO$trend_02_12){
@@ -239,7 +241,7 @@ if(INFO$trend_02_12){
   AA.gr <- setGraph(2, AA.lo)
   concUSGS(CIAnnualResults, eList, INFO$trend_02_12_start, INFO$trend_end, margin=AA.gr)
   graphics.off()  
-  item_append_files(x$id, files = "combo_02.pdf")
+  # item_append_files(x$id, files = "combo_02.pdf")
   filesWeWant <- c(filesWeWant, "combo_02.pdf")
 }
 

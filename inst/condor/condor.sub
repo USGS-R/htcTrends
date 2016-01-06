@@ -1,6 +1,6 @@
 executable=simple.sh
-arguments=trendsCondor.R $(Process)
-transfer_input_files=trendsCondor.R,unzip,.Renviron,packages.zip,flowData.rds, infoData.rds, sampleData.rds, config.R, auth.R
+arguments=confIntervals.R $(Process)
+transfer_input_files=confIntervals.R,unzip,.Renviron,packages.zip,flowData.rds, infoData.rds, sampleData.rds, config.R, auth.R
 universe = vanilla
 output = out/$(Process).out
 error = err/$(Process).err
@@ -13,6 +13,6 @@ should_transfer_files = YES
 #+WantFlocking = true
 when_to_transfer_output = ON_EXIT
 notification = never
-transfer_output_files = trends.zip
-transfer_output_remaps = "trends.zip = results/trends_$(Process).zip"
-queue 1
+transfer_output_files = ci.zip
+transfer_output_remaps = "ci.zip = resultsCInew/ci_$(Process).zip"
+queue 2222

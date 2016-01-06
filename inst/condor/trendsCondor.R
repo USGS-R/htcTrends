@@ -90,7 +90,8 @@ flowDataTotal <- readRDS("flowData.rds")
   
   folderID <- item_create(topFolderID, 
                           title=paste(parameter,shortName,sep="_")) 
-
+  x <- suppressMessages(item_update_identifier(id = folderID$id, type = 'naqwa', 
+                                               'dataII', paste(parameter,shortName,sep="_")))
 #   dir.create(file.path(path, i), showWarnings = FALSE)
 #   setwd(file.path(path, i))
   
@@ -358,9 +359,6 @@ flowDataTotal <- readRDS("flowData.rds")
   x <- item_append_files(folderID,
                          files = file.path(getwd(),"plotSDLogQ.pdf"))
 
-  x <- suppressMessages(item_update_identifier(id = folderID$id, type = 'naqwa', 
-                                               'dataII', paste(parameter,shortName,sep="_")))
-  
   files <-  list.files() 
   filesWeDontWant <- c("trendsCondor.R","condor.sub","simple.sh","packages.zip",
                        "flowData.RData","infoData.RData","subData.RData","unzip",

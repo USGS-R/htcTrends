@@ -23,7 +23,7 @@ Package: car
 Version: 2.1-1
 Depends: R (>= 3.2.0)
 Suggests: alr4, boot, coxme, leaps, lme4, lmtest, Matrix, MatrixModels, nlme, rgl (>=
-         0.93.960), sandwich, SparseM, survival, survey
+          0.93.960), sandwich, SparseM, survival, survey
 License: GPL (>= 2)
 MD5sum: af68cfa5cf41f9b3cf1d13817bf2a3ee
 NeedsCompilation: no
@@ -44,22 +44,21 @@ MD5sum: 5dbe19cf67151f9cc5387992fcb718f8
 NeedsCompilation: yes
 
 Package: EGRET
-Version: 2.4.1
+Version: 2.2.0
 Depends: R (>= 3.0)
-Imports: survival, fields, lubridate, methods, utils, graphics, stats, grDevices,
-         truncnorm
-Suggests: xtable, knitr, rmarkdown, extrafont, testthat, rkt
+Imports: survival, fields, stats, lubridate, methods
+Suggests: xtable, knitr, extrafont, testthat
 License: CC0
-MD5sum: c7a0f619be0f5d691df2fb19725bc9e1
+MD5sum: f152bb12d1606760390de51ca19b1cf0
 NeedsCompilation: no
 
 Package: EGRETci
 Version: 1.0.0
 Depends: R (>= 3.0)
-Imports: EGRET (>= 2.1.1), binom, lubridate, stats, graphics
+Imports: usgsEGRET, binom, lubridate, stats, graphics
 Suggests: knitr, testthat, foreach, doParallel, iterators, rmarkdown
 License: CC0
-MD5sum: c055bc81c2db1b5b43ce76ae2005fd9b
+MD5sum: abd98bfa8edb809829d321e646ea3a84
 NeedsCompilation: no
 
 Package: fields
@@ -229,12 +228,12 @@ MD5sum: 8333b96a86b8c03fe5af2391e99291fb
 NeedsCompilation: no
 
 Package: smwrQW
-Version: 0.7.7
+Version: 0.7.9
 Depends: smwrBase, smwrGraphs, smwrStats
-Imports: survival
+Imports: boot, lubridate, methods, survival
 Suggests: smwrData, cluster, NADA, psych
 License: CC0
-MD5sum: 5c71bc3ee853214e6d2b4a8f9d026245
+MD5sum: b7953c32a7967518106beaf95b89b09d
 NeedsCompilation: yes
 
 Package: smwrStats
@@ -294,9 +293,9 @@ Package: usgsEGRET
 Version: 0.0.5
 Depends: R (>= 3.0)
 Imports: survival, fields, lubridate, methods, smwrGraphs, smwrQW, utils, graphics,
-         stats, grDevices, truncnorm
+          stats, grDevices, truncnorm
 Suggests: xtable, knitr, rmarkdown, extrafont, testthat, rkt
 License: CC0
-MD5sum: 4887a6a7ceb80634b095e421511222e1
+MD5sum: 0834a86caae4b2ada4b5b65fbf887cf7
 NeedsCompilation: no
 

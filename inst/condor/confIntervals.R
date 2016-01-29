@@ -20,7 +20,7 @@ infoDataTotal <- readRDS("infoData.rds")
 sampleDataTotal <- readRDS("sampleData.rds")
 flowDataTotal <- readRDS("flowData.rds")
 
-for(i in 1:2222){
+
 flowSite <- infoDataTotal$Gage_number[i]
 sampleSite <- infoDataTotal$Site_no[i]
 parameter <- infoDataTotal$paramShortName[i]
@@ -33,7 +33,7 @@ names(Sample)[names(Sample) == "date"] <- c("dateTime")
 Sample <- Sample[order(Sample$dateTime),]
 Sample <- populateSampleColumns(Sample)
 
-}
+
 flowFile <- flowDataTotal[flowDataTotal$site == sampleSite, c("dateTime", "value")]
 Daily <- populateDaily(flowFile,1,interactive=FALSE)
 
@@ -62,6 +62,9 @@ if(!is.na(INFO$blank_start3)){
 nBoot = INFO$nBoot
 bootBreak = INFO$bootBreak
 blockLength = INFO$blockLength
+
+eList$INFO$minNumUncen <- 5
+eList$INFO$minNumObs <- 5
 
 CIAnnualResults <- ciCalculations(eList,
                                   nBoot=nBoot, 

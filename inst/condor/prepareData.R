@@ -2,7 +2,7 @@ library(readr)
 library(lubridate)
 path <- "D:/LADData/RCode/htcTrends/inst/extdata"
 
-infoFile <- "Nut3_INFO_12282015.csv"
+infoFile <- "Nut_Sed_INFO_01252015.csv"
 
 infoDataTotal <- read_csv(file.path(path,infoFile))
 infoDataTotal$blank_start1 <- parse_date(infoDataTotal$blank_start1, format = "%m/%d/%Y")
@@ -16,7 +16,7 @@ moreLogic <- c("trend_72_12","trend_82_12","trend_92_12","trend_02_12")
 infoDataTotal[,moreLogic] <- sapply(infoDataTotal[,moreLogic], function(x) x == "Y")
 
 
-dataFile <- "Nut3_DATA_12282015.csv"
+dataFile <- "Nut_Sed_DATA_01252015.csv"
 sampleDataTotal <- read_csv(file.path(path,dataFile))
 sampleDataTotal$date <- as.Date(parse_date_time(sampleDataTotal$date, c("%m/%d/%Y","%Y-%m-%d")))
 

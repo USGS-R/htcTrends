@@ -26,14 +26,12 @@ item_file_download(summaryFolder, names='bootOut.rds',
 
 bootOut <- readRDS(file.path(tempFolder,'bootOut.rds'))
 
-topFolderID <- "5679a0e9e4b0da412f4fc2b7"
-
 shinyServer(function(input, output, session) {
   
   eList_Start <- eventReactive(input$getData, {
     source("config.R")
     id <- idText()
-    x <- query_item_identifier(type='naqwa', scheme = 'dataII', key = id)
+    x <- query_item_identifier(type='naqwa', scheme = 'dataII_new', key = id)
     item_file_download(x$id, names="eList.rds",
                        destinations = file.path(tempFolder,"eList.rds"), 
                        overwrite_file=TRUE) 
@@ -45,7 +43,7 @@ shinyServer(function(input, output, session) {
     eList_Start <- eList_Start()    
     source("config.R")
     id <- idText()
-    x <- query_item_identifier(type='naqwa', scheme = 'dataII', key = id)
+    x <- query_item_identifier(type='naqwa', scheme = 'dataII_new', key = id)
     itemsInFolder <- item_list_files(x$id)
     trendsFile <- itemsInFolder$fname[grep(pattern = ".RData", itemsInFolder$fname)]
     item_file_download(x$id, names=trendsFile[1],
@@ -57,8 +55,23 @@ shinyServer(function(input, output, session) {
     eBoot
   })
   
+  bands <- reactive({
+    eList_Start <- eList_Start()    
+    source("config.R")
+    id <- idText()
+    x <- query_item_identifier(type='naqwa', scheme = 'dataII_new', key = id)
+    
+    item_file_download(x$id, names="CIAnnualResults.rds",
+                       destinations = file.path(tempFolder,"CIAnnualResults.rds"), 
+                       overwrite_file=TRUE) 
+    
+    bands <- readRDS(file.path(tempFolder,"CIAnnualResults.rds"))
+    
+    bands
+  })
+  
   eList <- reactive({
-
+    
     eList_Start <- eList_Start()      
     paStart = as.integer(which(month.name == input$paStart))
     paLong = as.integer(input$paLong)
@@ -72,7 +85,7 @@ shinyServer(function(input, output, session) {
     stat = as.integer(input$flowStat)
     qUnit = as.integer(input$qUnit)
     logScale = input$logScaleFlow
-
+    
     switch(input$flowPlots,
            "plotFlowSingle" = plotFlowSingle(eList, istat=stat, qUnit = qUnit),
            "plotSDLogQ" = plotSDLogQ(eList),
@@ -94,7 +107,7 @@ shinyServer(function(input, output, session) {
     dev.off()
     
   })
-
+  
   output$flowPlotsOut <- renderPlot({ 
     flowPlotStuff()
   })
@@ -104,7 +117,7 @@ shinyServer(function(input, output, session) {
     eList <- eList()
     qUnit = as.integer(input$qUnit)
     logScale = input$logScaleData
-
+    
     switch(input$dataPlots,
            "boxConcMonth" = boxConcMonth(eList, logScale = logScale),
            "boxQTwice" = boxQTwice(eList, qUnit = qUnit),
@@ -135,6 +148,7 @@ shinyServer(function(input, output, session) {
     
     eList <- eList()
     rawBoot <- rawBoot()
+    bands <- bands()
     INFO <- eList$INFO
     caseSetUp <- data.frame(year1=min(c(INFO$trend_72_12_start,
                                         INFO$trend_82_12_start,
@@ -144,16 +158,20 @@ shinyServer(function(input, output, session) {
                             nBoot=INFO$nBoot,
                             bootBreak = INFO$bootBreak,
                             blockLength = INFO$blockLength)
-     
+    
     switch(input$trendPlots,
            "plotHistogramTrendConc" = plotHistogramTrend(eList, rawBoot, caseSetUp, flux = FALSE),
-           "plotHistogramTrendFlux" = plotHistogramTrend(eList, rawBoot, caseSetUp, flux = TRUE)
+           "plotHistogramTrendFlux" = plotHistogramTrend(eList, rawBoot, caseSetUp, flux = TRUE),
+           "plotFluxHistBoot" = plotFluxHistBoot(eList, bands),
+           "plotConcHistBoot" = plotConcHistBoot(eList, bands)
     )
     
     pdf("plot.pdf")
     switch(input$trendPlots,
            "plotHistogramTrendConc" = plotHistogramTrend(eList, rawBoot, caseSetUp, flux=FALSE),
-           "plotHistogramTrendFlux" = plotHistogramTrend(eList, rawBoot, caseSetUp, flux = TRUE)
+           "plotHistogramTrendFlux" = plotHistogramTrend(eList, rawBoot, caseSetUp, flux = TRUE),
+           "plotFluxHistBoot" = plotFluxHistBoot(eList, bands),
+           "plotConcHistBoot" = plotConcHistBoot(eList, bands)
     )
     dev.off()
     
@@ -162,11 +180,11 @@ shinyServer(function(input, output, session) {
   output$trendPlotsOut <- renderPlot({ 
     trendPlotStuff()
   })
-
+  
   modelPlotStuff <- reactive({
     
     eList <- eList()
-
+    
     date1 = input$date1
     date2 = input$date2
     date3 = input$date3
@@ -184,7 +202,7 @@ shinyServer(function(input, output, session) {
     to = as.numeric(input$concRange[2])
     by = as.integer(input$by)+1
     rResid <- input$rResid
-
+    
     switch(input$modelPlots,
            "plotConcTimeDaily" = plotConcTimeDaily(eList),
            "plotFluxTimeDaily" = plotFluxTimeDaily(eList, fluxUnit=fluxUnit),
@@ -208,27 +226,27 @@ shinyServer(function(input, output, session) {
     )
     
     pdf("plot.pdf")
-      switch(input$modelPlots,
-             "plotConcTimeDaily" = plotConcTimeDaily(eList),
-             "plotFluxTimeDaily" = plotFluxTimeDaily(eList, fluxUnit=fluxUnit),
-             "plotConcPred" = plotConcPred(eList, logScale = logScale),
-             "plotFluxPred" = plotFluxPred(eList, fluxUnit=fluxUnit),
-             "plotResidPred" = plotResidPred(eList, rResid = rResid),
-             "plotResidQ" = plotResidQ(eList, qUnit=qUnit, rResid = rResid),
-             "plotResidTime" = plotResidTime(eList, rResid = rResid),
-             "boxResidMonth" = boxResidMonth(eList, rResid = rResid),
-             "boxConcThree" = boxConcThree(eList),
-             "plotConcHist" = plotConcHist(eList),
-             "plotFluxHist" = plotFluxHist(eList, fluxUnit=fluxUnit),
-             "plotConcQSmooth" = plotConcQSmooth(eList, date1=date1,date2=date2, date3=date3,qLow=qLow,qHigh=qHigh),
-             "plotConcTimeSmooth" = plotConcTimeSmooth(eList, q1=qLow, q2=qMid, q3=qHigh, logScale = logScale,
-                                                       centerDate=centerDate,yearStart=yearStart, yearEnd=yearEnd),
-             "fluxBiasMulti" = fluxBiasMulti(eList, fluxUnit=fluxUnit, qUnit=qUnit, rResid = rResid),
-             "plotContours" = plotContours(eList, qUnit=qUnit,yearStart = yearStart, yearEnd = yearEnd,
-                                           qBottom = qLow, qTop=qHigh,contourLevels = seq(from, to, length.out =by)),
-             "plotDiffContours" = plotDiffContours(eList, year0=yearStart,year1 = yearEnd, maxDiff = maxDiff,
-                                                   qUnit=qUnit,qBottom = qLow, qTop=qHigh)
-      )
+    switch(input$modelPlots,
+           "plotConcTimeDaily" = plotConcTimeDaily(eList),
+           "plotFluxTimeDaily" = plotFluxTimeDaily(eList, fluxUnit=fluxUnit),
+           "plotConcPred" = plotConcPred(eList, logScale = logScale),
+           "plotFluxPred" = plotFluxPred(eList, fluxUnit=fluxUnit),
+           "plotResidPred" = plotResidPred(eList, rResid = rResid),
+           "plotResidQ" = plotResidQ(eList, qUnit=qUnit, rResid = rResid),
+           "plotResidTime" = plotResidTime(eList, rResid = rResid),
+           "boxResidMonth" = boxResidMonth(eList, rResid = rResid),
+           "boxConcThree" = boxConcThree(eList),
+           "plotConcHist" = plotConcHist(eList),
+           "plotFluxHist" = plotFluxHist(eList, fluxUnit=fluxUnit),
+           "plotConcQSmooth" = plotConcQSmooth(eList, date1=date1,date2=date2, date3=date3,qLow=qLow,qHigh=qHigh),
+           "plotConcTimeSmooth" = plotConcTimeSmooth(eList, q1=qLow, q2=qMid, q3=qHigh, logScale = logScale,
+                                                     centerDate=centerDate,yearStart=yearStart, yearEnd=yearEnd),
+           "fluxBiasMulti" = fluxBiasMulti(eList, fluxUnit=fluxUnit, qUnit=qUnit, rResid = rResid),
+           "plotContours" = plotContours(eList, qUnit=qUnit,yearStart = yearStart, yearEnd = yearEnd,
+                                         qBottom = qLow, qTop=qHigh,contourLevels = seq(from, to, length.out =by)),
+           "plotDiffContours" = plotDiffContours(eList, year0=yearStart,year1 = yearEnd, maxDiff = maxDiff,
+                                                 qUnit=qUnit,qBottom = qLow, qTop=qHigh)
+    )
     dev.off()
     
   })
@@ -304,10 +322,10 @@ shinyServer(function(input, output, session) {
     INFO <- eList$INFO
     
     flippedTable <- data.frame(t(INFO[,names(INFO) %in% c("station_nm","site_no","agency_cd",
-                                         "dec_lat_va","dec_long_va","tz_cd",
-                                         "drainSqKm","shortName","param_nm",
-                                         "param_units","param_nm",
-                                         "paramNumber")]))
+                                                          "dec_lat_va","dec_long_va","tz_cd",
+                                                          "drainSqKm","shortName","param_nm",
+                                                          "param_units","param_nm",
+                                                          "paramNumber")]))
     
     DT::datatable(flippedTable, colnames = "",
                   options = list(pageLength = nrow(flippedTable)))
@@ -344,7 +362,7 @@ shinyServer(function(input, output, session) {
     eList <- eList()
     updateNumericInput(session, "maxDiff", value = diff(range(eList$Sample$ConcAve)))
   })
-
+  
   observe({
     eList <- eList()
     updateSliderInput(session, "yearRange", 
@@ -381,16 +399,16 @@ shinyServer(function(input, output, session) {
     eList <- eList()   
     updateDateInput(session, "date3", value=as.Date(quantile(eList$Daily$Date, type=1, probs = 0.9), origin="1970-01-01"))
   })
-
+  
   observe({
     eList <- eList()
     qFactor <- qConst[shortCode=as.integer(input$qUnit)][[1]]
     qFactor <- qFactor@qUnitFactor
     updateNumericInput(session, "qMid", value = round(qFactor * quantile(eList$Daily$Q, probs = 0.5),digits = 1))
   })
-
+  
   output$flowCode <- renderPrint({
-
+    
     stat = as.integer(input$flowStat)
     qUnit = as.integer(input$qUnit)
     paStart = as.integer(which(month.name == input$paStart))
@@ -419,7 +437,9 @@ shinyServer(function(input, output, session) {
     
     outText <- switch(input$trendPlots,
                       "plotHistogramTrendConc" = paste0("plotHistogramTrend(eList, eBoot, caseSetUp, flux=FALSE)"),
-                      "plotHistogramTrendFlux" = paste0("plotHistogramTrend(eList, eBoot, caseSetUp, flux=TRUE)")
+                      "plotHistogramTrendFlux" = paste0("plotHistogramTrend(eList, eBoot, caseSetUp, flux=TRUE)"),
+                      "plotFluxHistBoot" = "plotFluxHistBoot(eList, CIAnnualResults)",
+                      "plotConcHistBoot" = "plotConcHistBoot(eList, CIAnnualResults"
                       
     )
     
@@ -427,10 +447,10 @@ shinyServer(function(input, output, session) {
                                                         INFO$trend_82_12_start,
                                                         INFO$trend_92_12_start,
                                                         INFO$trend_02_12_start),na.rm = TRUE),",\n",
-                                            "year2 = ", INFO$trend_end,",\n",
-                                            "nBoot = ", INFO$nBoot,",\n",
-                                            "bootBreak = ", INFO$bootBreak,",\n",
-                                            "blockLength = ", INFO$blockLength, ")\n",
+                "year2 = ", INFO$trend_end,",\n",
+                "nBoot = ", INFO$nBoot,",\n",
+                "bootBreak = ", INFO$bootBreak,",\n",
+                "blockLength = ", INFO$blockLength, ")\n",
                 "setPA(eList, paStart = ",paStart, ", paLong = ", paLong,")\n",
                 outText))
     
@@ -444,21 +464,21 @@ shinyServer(function(input, output, session) {
                 "authenticate()\n",
                 "id <- '", id, "'\n",
                 "tempFolder <- tempdir()\n",
-                "x <- query_item_identifier(type='naqwa', scheme = 'dataII', key = id)\n",
+                "x <- query_item_identifier(type='naqwa', scheme = 'dataII_new', key = id)\n",
                 "item_file_download(x$id, names='eList.rds',\n",
-                     "destinations = file.path(tempFolder,'eList.rds'),\n", 
-                     "overwrite_file=TRUE)\n",
+                "destinations = file.path(tempFolder,'eList.rds'),\n", 
+                "overwrite_file=TRUE)\n",
                 "eList_Start <- readRDS(file.path(tempFolder,'eList.rds'))"))
     
   })
   
   output$dataCode <- renderPrint({
-
+    
     qUnit = as.integer(input$qUnit)
     paStart = as.integer(which(month.name == input$paStart))
     paLong = as.integer(input$paLong)
     logScale = input$logScaleData
-
+    
     outText <- switch(input$dataPlots,
                       "boxConcMonth" = paste0("boxConcMonth(eList, logScale = ", logScale,")"),
                       "boxQTwice" = paste0("boxQTwice(eList, qUnit = ", qUnit, ")"),
@@ -476,7 +496,7 @@ shinyServer(function(input, output, session) {
   output$modelCode <- renderPrint({
     
     eList <- eList()
-
+    
     qUnit = as.integer(input$qUnit)
     fluxUnit = as.integer(input$fluxUnit)
     paStart = as.integer(which(month.name == input$paStart))
@@ -495,7 +515,7 @@ shinyServer(function(input, output, session) {
     to = input$concRange[2]
     by = as.integer(input$by) + 1
     rResid = input$rResid
-
+    
     outText <- switch(input$modelPlots,
                       "plotConcTimeDaily" = paste0("plotConcTimeDaily(eList)"),
                       "plotFluxTimeDaily" = paste0("plotFluxTimeDaily(eList, fluxUnit = ", fluxUnit),
@@ -533,9 +553,9 @@ shinyServer(function(input, output, session) {
       setView(lng = -99.5, lat = 40, zoom=4) 
     
   })
-
+  
   choseData <- reactive({
-
+    
     paramList = input$paramList
     trendTime = input$trendTime
     up = input$up
@@ -562,31 +582,31 @@ shinyServer(function(input, output, session) {
     
     if(nrow(subData) > 0){
       
-        subData <- subData[!is.na(subData$yearStart),]
-        subData$ID <-  paste(as.character(subData$param_nm),subData$Site_no,sep="_")
-        
-        if(fluxOrConc == "Flux"){
-          if(up == "Up"){
-            subData$colData <- subData$likeFUp
-            legendTitle <- "Probablity that\n Flux is Upwards"
-          } else {
-            subData$colData <- subData$likeFDown
-            legendTitle <- "Probablity that\nFlux is Downwards"
-          }
+      subData <- subData[!is.na(subData$yearStart),]
+      subData$ID <-  paste(as.character(subData$param_nm),subData$Site_no,sep="_")
+      
+      if(fluxOrConc == "Flux"){
+        if(up == "Up"){
+          subData$colData <- subData$likeFUp
+          legendTitle <- "Probablity that\n Flux is Upwards"
         } else {
-          if(up == "Up"){
-            subData$colData <- subData$likeCUp
-            legendTitle <- "Probablity that\nConc is Upwards"
-          } else {
-            subData$colData <- subData$likeCDown
-            legendTitle <- "Probablity that\nConc is Downwards"
-          }
+          subData$colData <- subData$likeFDown
+          legendTitle <- "Probablity that\nFlux is Downwards"
         }
-        
-        attr(subData,"legendTitle") <- legendTitle
+      } else {
+        if(up == "Up"){
+          subData$colData <- subData$likeCUp
+          legendTitle <- "Probablity that\nConc is Upwards"
+        } else {
+          subData$colData <- subData$likeCDown
+          legendTitle <- "Probablity that\nConc is Downwards"
+        }
+      }
+      
+      attr(subData,"legendTitle") <- legendTitle
     }
     
-      subData
+    subData
   })
   
   observe({
@@ -610,13 +630,13 @@ shinyServer(function(input, output, session) {
         clearControls() %>%
         addCircleMarkers(lat=~dec_lat_va, lng=~dec_long_va, 
                          layerId = ~ID,
-                   fillColor = ~pal(colData), 
-                   popup = ~ID,
-                   # weight=1,
-                   radius=3,
-                   stroke=FALSE,
-                   # color = "black",
-                   fillOpacity = 0.8, opacity = 0.8) %>%
+                         fillColor = ~pal(colData), 
+                         popup = ~ID,
+                         # weight=1,
+                         radius=3,
+                         stroke=FALSE,
+                         # color = "black",
+                         fillOpacity = 0.8, opacity = 0.8) %>%
         addLegend(
           position = 'bottomleft',
           pal=pal,
@@ -629,7 +649,7 @@ shinyServer(function(input, output, session) {
         clearControls() %>%
         clearPopups() 
     }
-
+    
   })
   
   idText <- reactive({
@@ -658,13 +678,13 @@ shinyServer(function(input, output, session) {
     HTML(paste0("<h5>",idText(),"</h5>"))
     
   })
-
+  
   output$textMessage <- renderUI({
     eList <- eList()
     INFO <- eList$INFO
     HTML(paste0("Data retrieved from sciencebase: ",INFO$station_nm))
-  
+    
   })
-
+  
   
 })

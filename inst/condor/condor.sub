@@ -1,18 +1,18 @@
 executable=simple.sh
-arguments=trendsNOCondor.R $(Process)
-transfer_input_files=trendsNOCondor.R,unzip,.Renviron,packages.zip,flowData.rds, infoData.rds, sampleData.rds
+arguments=trendsNOsbtools.R $(Process)
+transfer_input_files=trendsNOsbtools.R,unzip,.Renviron,packages.zip,flowDataTEST.rds, infoDataTEST.rds, sampleDataTEST.rds
 universe = vanilla
 output = out/$(Process).out
 error = err/$(Process).err
 log = log/$(Process).log
 stream_output = True
 stream_error = True
-requirements = (TARGET.Arch == "X86_64") && (TARGET.OpSys == "LINUX") && (TARGET.OpSysVer == 701)
-request_cpus = 1
+requirements = (TARGET.Arch == "X86_64") && (TARGET.OpSys == "LINUX")
+request_cpus = 2
 should_transfer_files = YES
 #+WantFlocking = true
 when_to_transfer_output = ON_EXIT
 notification = never
 transfer_output_files = trends.zip
 transfer_output_remaps = "trends.zip = results/trends_$(Process).zip"
-queue 2875
+queue 33

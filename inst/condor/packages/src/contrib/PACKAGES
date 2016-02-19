@@ -22,8 +22,8 @@ NeedsCompilation: yes
 Package: car
 Version: 2.1-1
 Depends: R (>= 3.2.0)
-Suggests: alr4, boot, coxme, leaps, lme4, lmtest, Matrix, MatrixModels, nlme, rgl (>=
-          0.93.960), sandwich, SparseM, survival, survey
+Suggests: alr4, boot, coxme, leaps, lme4, lmtest, Matrix, MatrixModels, nlme,
+         rgl (>= 0.93.960), sandwich, SparseM, survival, survey
 License: GPL (>= 2)
 MD5sum: af68cfa5cf41f9b3cf1d13817bf2a3ee
 NeedsCompilation: no
@@ -72,7 +72,8 @@ Package: httr
 Version: 1.0.0
 Depends: R (>= 3.0.0)
 Imports: digest, jsonlite, mime, curl (>= 0.6), R6, stringr (>= 0.6.1)
-Suggests: base64enc, httpuv, jpeg, knitr, PKI (>= 0.1-2), png, testthat (>= 0.8.0), XML
+Suggests: base64enc, httpuv, jpeg, knitr, PKI (>= 0.1-2), png, testthat (>=
+         0.8.0), XML
 License: MIT + file LICENSE
 MD5sum: bfae6973b43ebaff87f1c12ee909e242
 NeedsCompilation: no
@@ -290,12 +291,12 @@ MD5sum: f519b82fb2946ba36c08c3b0e2260a9b
 NeedsCompilation: yes
 
 Package: usgsEGRET
-Version: 0.0.5
+Version: 0.0.6
 Depends: R (>= 3.0)
-Imports: survival, fields, lubridate, methods, smwrGraphs, smwrQW, utils, graphics,
-          stats, grDevices, truncnorm
+Imports: survival, fields, lubridate, methods, smwrGraphs, smwrQW, utils,
+         graphics, stats, grDevices, truncnorm
 Suggests: xtable, knitr, rmarkdown, extrafont, testthat, rkt
 License: CC0
-MD5sum: 0834a86caae4b2ada4b5b65fbf887cf7
+MD5sum: 0e42cfea449497dd8e4775f6bdd743b6
 NeedsCompilation: no
 

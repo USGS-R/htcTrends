@@ -461,7 +461,7 @@ shinyServer(function(input, output, session) {
     id <- idText()
     
     HTML(paste0("library(sbtools)\n",
-                "authenticate()\n",
+                "authenticate_sb()\n",
                 "id <- '", id, "'\n",
                 "tempFolder <- tempdir()\n",
                 "x <- query_item_identifier(type='naqwa', scheme = 'dataII_new', key = id)\n",

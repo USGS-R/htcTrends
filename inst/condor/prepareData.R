@@ -2,7 +2,7 @@ library(readr)
 library(lubridate)
 path <- "D:/LADData/RCode/htcTrends/inst/extdata"
 
-infoFile <- "Nut_Sed_INFO_01252015.csv"
+infoFile <- "Nut_test_info_with_blanktime_2.csv"
 
 infoDataTotal <- read_csv(file.path(path,infoFile))
 infoDataTotal$blank_start1 <- parse_date(infoDataTotal$blank_start1, format = "%m/%d/%Y")
@@ -20,7 +20,7 @@ dataFile <- "Nut_Sed_DATA_01252015.csv"
 sampleDataTotal <- read_csv(file.path(path,dataFile))
 sampleDataTotal$date <- as.Date(parse_date_time(sampleDataTotal$date, c("%m/%d/%Y","%Y-%m-%d")))
 
-saveRDS(infoDataTotal, file="infoData.rds")
+saveRDS(infoDataTotal, file="infoDataTEST.rds")
 saveRDS(sampleDataTotal, file="sampleData.rds")
 
 
@@ -39,10 +39,10 @@ for(j in sampleSite){
                                                col_date(),col_number(), col_number()))
   }
   
-  subFlow <- flowDataTotal[,c("start_date","flow_scaled")]
+  subFlow <- flowDataTotal[,c("start_date","flow_gage")]
   subFlow$site <- rep(j, nrow(subFlow))
   names(subFlow) <- c("dateTime","value","site")
   subFlow <- subFlow[order(subFlow$dateTime),]
   flowData <- rbind(flowData, subFlow)
 }
-saveRDS(flowData, file="flowData.rds")
+saveRDS(flowData, file="flowDataTEST.rds")

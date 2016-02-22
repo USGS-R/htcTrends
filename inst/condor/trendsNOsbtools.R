@@ -135,11 +135,11 @@ flowDataTotal <- readRDS("flowDataTEST.rds")
   graphics.off()
   
   setPDF("plotConcQ", layout = list(height=4, width=4, fin=c(3.4,3.4)))
-  plotConcQ(eList, USGSstyle = TRUE, logScale = TRUE,legend = TRUE, where="ur")
+  plotConcQ(eList, USGSstyle = TRUE, logScale = TRUE,legend = FALSE)
   graphics.off()
     
   setPDF("plotConcTime", layout = list(height=4, width=4, fin=c(3.4,3.4)))
-  plotConcTime(eList, USGSstyle = TRUE, logScale = TRUE,legend = TRUE)
+  plotConcTime(eList, USGSstyle = TRUE, logScale = TRUE,legend = FALSE)
   graphics.off()
   
   setPDF("boxQTwice", layout="landscape")
@@ -172,23 +172,23 @@ flowDataTotal <- readRDS("flowDataTEST.rds")
 
   
   setPDF("plotResidPred", layout = list(height=4, width=4, fin=c(3.4,3.4)))
-  plotResidPred(eList, USGSstyle = TRUE, logScale = TRUE,legend = TRUE)
+  plotResidPred(eList, USGSstyle = TRUE, logScale = TRUE,legend = FALSE)
   graphics.off()
   
   setPDF("plotResidQ", layout = list(height=4, width=4, fin=c(3.4,3.4)))
-  plotResidQ(eList, USGSstyle = TRUE, logScale = TRUE,legend = TRUE)
+  plotResidQ(eList, USGSstyle = TRUE, logScale = TRUE,legend = FALSE)
   graphics.off()
   
   setPDF("plotResidTime", layout = list(height=4, width=4, fin=c(3.4,3.4)))
-  plotResidTime(eList, USGSstyle = TRUE, logScale = TRUE,legend = TRUE)
+  plotResidTime(eList, USGSstyle = TRUE, logScale = TRUE,legend = FALSE)
   graphics.off()
   
   setPDF("plotConcPred", layout = list(height=4, width=4, fin=c(3.4,3.4)))
-  plotConcPred(eList, USGSstyle = TRUE, logScale = TRUE,legend = TRUE)
+  plotConcPred(eList, USGSstyle = TRUE, logScale = TRUE,legend = FALSE)
   graphics.off()
   
   setPDF("plotFluxPred", layout = list(height=4, width=4, fin=c(3.4,3.4)))
-  plotFluxPred(eList, USGSstyle = TRUE, logScale = TRUE,legend = TRUE)
+  plotFluxPred(eList, USGSstyle = TRUE, logScale = TRUE,legend = FALSE)
   graphics.off()
   
   setPDF("boxResidMonth", layout="landscape")
@@ -202,15 +202,15 @@ flowDataTotal <- readRDS("flowDataTEST.rds")
   saveRDS(eList, file="eList.rds")
   
   setPDF("plotFluxHist", layout = list(height=4, width=4, fin=c(3.4,3.4)))
-  plotFluxHist(eList, USGSstyle = TRUE, logScale = TRUE,legend = TRUE, yearStart = yearPoints[1],yearEnd = yearPoints[length(yearPoints)])
+  plotFluxHist(eList, USGSstyle = TRUE, logScale = TRUE,legend = FALSE, yearStart = yearPoints[1],yearEnd = yearPoints[length(yearPoints)])
   graphics.off()
   
   setPDF("plotConcHist", layout = list(height=4, width=4, fin=c(3.4,3.4)))
-  plotConcHist(eList, USGSstyle = TRUE, logScale = TRUE,legend = TRUE, yearStart = yearPoints[1],yearEnd = yearPoints[length(yearPoints)])
+  plotConcHist(eList, USGSstyle = TRUE, logScale = TRUE,legend = FALSE, yearStart = yearPoints[1],yearEnd = yearPoints[length(yearPoints)])
   graphics.off()
 
   setPDF("plotQTimeDaily", layout = list(height=4, width=4, fin=c(3.4,3.4)))
-  plotQTimeDaily(eList, USGSstyle = TRUE, logScale = TRUE,legend = TRUE, yearStart = yearPoints[1],yearEnd = yearPoints[length(yearPoints)])
+  plotQTimeDaily(eList, USGSstyle = TRUE, logScale = TRUE,legend = FALSE, yearStart = yearPoints[1],yearEnd = yearPoints[length(yearPoints)])
   graphics.off()
 
   for(istat in 1:8){
@@ -218,6 +218,10 @@ flowDataTotal <- readRDS("flowDataTEST.rds")
     subChange <- tableFlowChange(eList, istat, yearPoints=yearPoints, verbose=FALSE)
     subSeries$flowStatistic <- rep(istatNames[istat],length=nrow(subSeries))
     subChange$flowStatistic <- rep(istatNames[istat],length=nrow(subChange))
+    
+    subSeries <- subSeries[subSeries$years >= minTrendYear & 
+                             subSeries$years <= INFO$trend_end,]
+    
     if(1 == istat){
       fullSeries <- subSeries
       fullChange <- subChange
@@ -383,9 +387,7 @@ flowDataTotal <- readRDS("flowDataTEST.rds")
   write.csv(data.frame(as.character(errorMessages), stringsAsFactors = FALSE),
             file="errorMessages.csv",row.names=FALSE)
 
-  setPDF(basename="plotSDLogQ")
-    layoutInfo <- setLayout(width=5, height=5)
-    layoutStuff <- setGraph(1, layoutInfo)
+  setPDF("plotSDLogQ", layout = list(height=4, width=4, fin=c(3.4,3.4)))
     plotSDLogQ(eList,USGSstyle=TRUE, window=8, yearStart = yearPoints[1], yearEnd = INFO$trend_end)
   graphics.off()
 
@@ -400,6 +402,9 @@ flowDataTotal <- readRDS("flowDataTEST.rds")
                                     nBoot=nBoot, 
                                     widthCI = 90, 
                                     blockLength=blockLength)
+  
+  CIAnnualResults <- CIAnnualResults[CIAnnualResults$Year >= minTrendYear &
+                                       CIAnnualResults$Year <= INFO$trend_end, ]
   
   saveRDS(CIAnnualResults, file="CIAnnualResults.rds")
   write.csv(CIAnnualResults, file = "CIAnnualResults.csv", row.names = FALSE)
@@ -447,7 +452,7 @@ flowDataTotal <- readRDS("flowDataTEST.rds")
     fluxMax <- 1.05*max(c(CIAnnualResults$FNFluxHigh*unitFactorReturn,annFlux), na.rm=TRUE)
     
     currentPlot <- colorPlot(subAnnualResults$Date, annFlux, color=rep("points",length(annFlux)),
-                             Plot=list(what="points",color=col),
+                             Plot=list(what="points",color=col,size=0.05),
                              yaxis.range=c(0,fluxMax), ytitle=ylabel,
                              xaxis.range=c(as.Date(paste0(xInfo$bottom,"-01-01")),as.Date(paste0(xInfo$top,"-01-01"))), ...)
     addXY(subAnnualResults$Date, fnFlux, Plot=list(color="black"))
@@ -459,8 +464,8 @@ flowDataTotal <- readRDS("flowDataTEST.rds")
     
     title<- title3 
     
-    addTitle(title, Justification = "center")
-    # addCaption(paste(INFO$shortname," (", INFO$site_no ,") ",INFO$paramshortname, ", ",periodName))
+    # addTitle(title, Justification = "center")
+    addCaption(paste(INFO$shortname," (", INFO$site_no ,")\n",INFO$paramshortname, ", ",periodName))
     
     addXY(as.Date(paste0(as.integer(CIAnnualResults$Year),"-04-01")), CIAnnualResults$FNFluxLow*unitFactorReturn, Plot=list(color="black", type="dashed"))
     addXY(as.Date(paste0(as.integer(CIAnnualResults$Year),"-04-01")), CIAnnualResults$FNFluxHigh*unitFactorReturn, Plot=list(color="black", type="dashed"))
@@ -501,7 +506,7 @@ flowDataTotal <- readRDS("flowDataTEST.rds")
     col <- list(points="black")
     
     currentPlot <- colorPlot(localAnnualResults$Date, localAnnualResults$Conc, rep("points",nrow(localAnnualResults)),
-                             Plot=list(what="points",color=col),
+                             Plot=list(what="points",color=col,size=0.05),
                              yaxis.range=c(yInfo$bottom,yInfo$top), ytitle=yInfo$label,
                              xaxis.range=c(as.Date(paste0(xInfo$bottom,"-01-01")),as.Date(paste0(xInfo$top,"-01-01"))), ...)
     
@@ -516,58 +521,60 @@ flowDataTotal <- readRDS("flowDataTEST.rds")
     
     title<-title3 
     
-    addTitle(title, Justification = "center")
-    addCaption(paste(INFO$shortname," (", INFO$site_no ,") ",INFO$paramshortname, ", ",periodName))
+    # addTitle(title, Justification = "center")
+    addCaption(paste(INFO$shortname," (", INFO$site_no ,")\n",INFO$paramshortname, ", ",periodName))
     addXY(as.Date(paste0(as.integer(CIAnnualResults$Year),"-04-01")), CIAnnualResults$FNConcLow, Plot=list(color="black", type="dashed"))
     addXY(as.Date(paste0(as.integer(CIAnnualResults$Year),"-04-01")), CIAnnualResults$FNConcHigh, Plot=list(color="black", type="dashed"))
     
   }
 
   if(INFO$trend_92_12){
-    setPDF(basename = "combo_92")
-    AA.lo <- setLayout(num.rows=2)
-    AA.gr <- setGraph(1, AA.lo)
-    AA.pl <-fluxUSGS(CIAnnualResults, eList, INFO$trend_92_12_start, INFO$trend_end, margin=AA.gr)
-    AA.gr <- setGraph(2, AA.lo)
-    concUSGS(CIAnnualResults, eList, INFO$trend_92_12_start, INFO$trend_end, margin=AA.gr)
+
+    setPDF("flux92", layout = list(height=4, width=4, fin=c(3.4,3.4)))
+    fluxUSGS(CIAnnualResults, eList, INFO$trend_92_12_start, INFO$trend_end)
+    graphics.off()
+    
+    setPDF("conc92", layout = list(height=4, width=4, fin=c(3.4,3.4)))
+    concUSGS(CIAnnualResults, eList, INFO$trend_92_12_start, INFO$trend_end)
     graphics.off()
   }
   
   if(INFO$trend_82_12){
-    setPDF(basename = "combo_82")
-    AA.lo <- setLayout(num.rows=2)
-    AA.gr <- setGraph(1, AA.lo)
-    AA.pl <-fluxUSGS(CIAnnualResults, eList, INFO$trend_82_12_start, INFO$trend_end, margin=AA.gr)
-    AA.gr <- setGraph(2, AA.lo)
-    concUSGS(CIAnnualResults, eList, INFO$trend_82_12_start, INFO$trend_end, margin=AA.gr)
-    graphics.off()  
+    
+    setPDF("flux82", layout = list(height=4, width=4, fin=c(3.4,3.4)))
+    fluxUSGS(CIAnnualResults, eList, INFO$trend_82_12_start, INFO$trend_end)
+    graphics.off()
+    
+    setPDF("conc82", layout = list(height=4, width=4, fin=c(3.4,3.4)))
+    concUSGS(CIAnnualResults, eList, INFO$trend_82_12_start, INFO$trend_end)
+    graphics.off()
 
   }
   
   if(INFO$trend_72_12){
-    setPDF(basename = "combo_72")
-    AA.lo <- setLayout(num.rows=2)
-    AA.gr <- setGraph(1, AA.lo)
-    AA.pl <-fluxUSGS(CIAnnualResults, eList, INFO$trend_72_12_start, INFO$trend_end, margin=AA.gr)
-    AA.gr <- setGraph(2, AA.lo)
-    concUSGS(CIAnnualResults, eList, INFO$trend_72_12_start, INFO$trend_end, margin=AA.gr)
+    setPDF("flux72", layout = list(height=4, width=4, fin=c(3.4,3.4)))
+    fluxUSGS(CIAnnualResults, eList, INFO$trend_72_12_start, INFO$trend_end)
+    graphics.off()
+    
+    setPDF("conc72", layout = list(height=4, width=4, fin=c(3.4,3.4)))
+    concUSGS(CIAnnualResults, eList, INFO$trend_72_12_start, INFO$trend_end)
     graphics.off()
   }
   
   if(INFO$trend_02_12){
-    setPDF(basename = "combo_02")
-    AA.lo <- setLayout(num.rows=2)
-    AA.gr <- setGraph(1, AA.lo)
-    AA.pl <-fluxUSGS(CIAnnualResults, eList, INFO$trend_02_12_start, INFO$trend_end, margin=AA.gr)
-    AA.gr <- setGraph(2, AA.lo)
-    concUSGS(CIAnnualResults, eList, INFO$trend_02_12_start, INFO$trend_end, margin=AA.gr)
-    graphics.off()  
+    setPDF("flux02", layout = list(height=4, width=4, fin=c(3.4,3.4)))
+    fluxUSGS(CIAnnualResults, eList, INFO$trend_02_12_start, INFO$trend_end)
+    graphics.off()
+    
+    setPDF("conc02", layout = list(height=4, width=4, fin=c(3.4,3.4)))
+    concUSGS(CIAnnualResults, eList, INFO$trend_02_12_start, INFO$trend_end)
+    graphics.off() 
   }
   
   file.remove("trends.zip")
   files <-  list.files() 
   filesWeDontWant <- c("trendsNOsbtools.R","condor.sub","simple.sh","packages.zip",
-                       "flowDataTEST.RData","infoDataTEST.RData","subDataTEST.RData","unzip",
+                       "flowDataTEST.rds","infoDataTEST.rds","subDataTEST.rds","unzip",
                        "rLibs","packages","condor_exec.exe","config.R","auth.R")
   filesWeWant <- files[!(files %in% filesWeDontWant)]
   zip(zipfile="trends.zip", files=filesWeWant)

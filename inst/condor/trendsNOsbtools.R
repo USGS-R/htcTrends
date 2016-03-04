@@ -11,10 +11,11 @@ args <- commandArgs(trailingOnly = TRUE)
 
 i <- as.numeric(args[1])+1 #Should be 1
 
-suppressPackageStartupMessages(library(EGRETci, quietly = TRUE, lib.loc = 'rLibs'))
-suppressPackageStartupMessages(library(usgsEGRET, quietly = TRUE, lib.loc = 'rLibs'))
-suppressPackageStartupMessages(library(smwrGraphs, quietly = TRUE, lib.loc = 'rLibs'))
-suppressPackageStartupMessages(library(reshape2, quietly = TRUE, lib.loc = 'rLibs'))
+library(EGRETci, lib.loc = 'rLibs')
+library(usgsEGRET, lib.loc = 'rLibs')
+library(smwrGraphs, lib.loc = 'rLibs')
+library(reshape2, lib.loc = 'rLibs')
+# suppressPackageStartupMessages(library(survival, quietly = TRUE, lib.loc = 'rLibs'))
 
 Mode <- function(x) {
   ux <- unique(x)
@@ -52,7 +53,7 @@ flowDataTotal <- readRDS("flowDataTEST.rds")
   
   
   flowFile <- flowDataTotal[flowDataTotal$site == sampleSite, c("dateTime", "value")]
-  Daily <- populateDaily(flowFile,1,interactive=FALSE)
+  Daily <- populateDaily(flowFile,35.314667,interactive=FALSE)
   
   INFO <- infoDataTotal[i,]
   INFO$param.units <- INFO$param_units
@@ -79,12 +80,13 @@ flowDataTotal <- readRDS("flowDataTEST.rds")
   Daily <- Daily[Daily$Date >= minTrend &
                    Daily$waterYear <= trendEnd,]
   eList <- mergeReport(INFO, Daily, Sample, interactive = FALSE)
-  eList$INFO$minNumUncen <- 0.5
+  eList$INFO$minNumUncen <- 50
+  # eList$INFO$minNumUncen <- 0.5
   eList$Sample <- eList$Sample[!is.na(eList$Sample$Q),]
   
   eList <- modelEstimation(eList, windowY = INFO$windowY, windowQ = INFO$windowQ, 
                            windowS = INFO$windowS, minNumObs = INFO$minNumObs, 
-                           minNumUncen = 0.5,
+                           minNumUncen = eList$INFO$minNumUncen,
                            edgeAdjust = INFO$edgeAdjust, verbose=FALSE)
   
   if(!is.na(INFO$blank_start1)){
@@ -253,11 +255,18 @@ flowDataTotal <- readRDS("flowDataTEST.rds")
     plot15(eList, yearStart=minTrendYear, yearEnd=INFO$trend_end)
   dev.off()
 
-  files <-  list.files() 
-  filesWeDontWant <- c("trendsNOsbtools.R","condor.sub","simple.sh","packages.zip",
-                       "flowDataTEST.RData","infoDataTEST.RData","subDataTEST.RData","unzip",
-                       "rLibs","packages","condor_exec.exe","config.R","auth.R")
-  filesWeWant <- files[!(files %in% filesWeDontWant)]
+  filesWeWant <- c("boxConcMonth.pdf","boxQTwice.pdf",          
+                    "boxResidMonth.pdf","eList.rds",             
+                    "explanation.pdf","flowStatistics.csv",       
+                    "fluxBiasMulti.pdf","multiPlotDataOverview.pdf",
+                    "plot15.pdf","plotConcHist.pdf",
+                    "plotConcPred.pdf","plotConcQ.pdf",            
+                    "plotConcTime.pdf","plotFluxHist.pdf",         
+                    "plotFluxPred.pdf","plotQTimeDaily.pdf",       
+                    "plotResidPred.pdf","plotResidQ.pdf",       
+                    "plotResidTime.pdf","tableChangeConc.csv",      
+                    "tableChangeFlux.csv","tableFlowChange.csv",      
+                    "tableResults.csv")
   zip(zipfile="trends.zip", files=filesWeWant)
   
   bootOut <- data.frame(matrix(NA, ncol=29))
@@ -270,6 +279,8 @@ flowDataTotal <- readRDS("flowDataTEST.rds")
   
   eList$Sample$Uncen[eList$Sample$Uncen == 0 & !is.na(eList$Sample$ConcLow)] <- 1
   eList$INFO$minNumUncen <- 0.5
+  
+  moreFiles <- c()
   
   if(INFO$trend_72_12){
     caseSetUp <- suppressMessages(trendSetUp(eList, 
@@ -290,6 +301,7 @@ flowDataTotal <- readRDS("flowDataTEST.rds")
     suppressMessages(saveEGRETci(eList, eBoot_72, caseSetUp, fileName = "trend_72_12"))
 
     saveRDS(eBoot_72, "eBoot_72.rds")
+    moreFiles <- c(moreFiles, "eBoot_72.rds", "trend_72_12.txt")
 
   }
   
@@ -313,7 +325,7 @@ flowDataTotal <- readRDS("flowDataTEST.rds")
     suppressMessages(saveEGRETci(eList, eBoot_82, caseSetUp, fileName = "trend_82_12"))
 
     saveRDS(eBoot_82,"eBoot_82.rds")
-
+    moreFiles <- c(moreFiles, "eBoot_82.rds", "trend_82_12.txt")
   }
   
   if(INFO$trend_92_12){
@@ -336,6 +348,7 @@ flowDataTotal <- readRDS("flowDataTEST.rds")
     bootOut <- rbind(bootOut,bo)
 
     saveRDS(eBoot_92, "eBoot_92.rds")
+    moreFiles <- c(moreFiles, "eBoot_92.rds", "trend_92_12.txt")
   }
   
   if(INFO$trend_02_12){
@@ -357,7 +370,7 @@ flowDataTotal <- readRDS("flowDataTEST.rds")
     suppressMessages(saveEGRETci(eList, eBoot_02, caseSetUp, fileName = "trend_02_12"))
 
     saveRDS(eBoot_02, "eBoot_02.rds")
-
+    moreFiles <- c(moreFiles, "eBoot_02.rds", "trend_02_12.txt")
   }
   
   bootOut <- na.omit(bootOut)
@@ -391,23 +404,31 @@ flowDataTotal <- readRDS("flowDataTEST.rds")
     plotSDLogQ(eList,USGSstyle=TRUE, window=8, yearStart = yearPoints[1], yearEnd = INFO$trend_end)
   graphics.off()
 
+  filesWeWant <- c(filesWeWant, moreFiles,
+                   "bootOut.csv","plotSDLogQ.pdf","errorMessages.csv")
+  zip(zipfile="trends.zip", files=filesWeWant)
+  
+  
   nBoot = INFO$nBoot
   bootBreak = INFO$bootBreak
   blockLength = INFO$blockLength
-  
-  eList$INFO$minNumUncen <- 0.5
-  eList$INFO$minNumObs <- 5
-  
+
+  # eList$INFO$minNumUncen <- 5
+  # eList$INFO$minNumObs <- 5
+
   CIAnnualResults <- ciCalculations(eList,
-                                    nBoot=nBoot, 
-                                    widthCI = 90, 
+                                    nBoot=nBoot,
+                                    widthCI = 90,
                                     blockLength=blockLength)
-  
+
   CIAnnualResults <- CIAnnualResults[CIAnnualResults$Year >= minTrendYear &
                                        CIAnnualResults$Year <= INFO$trend_end, ]
-  
+
   saveRDS(CIAnnualResults, file="CIAnnualResults.rds")
   write.csv(CIAnnualResults, file = "CIAnnualResults.csv", row.names = FALSE)
+
+  filesWeWant <- c(filesWeWant, "CIAnnualResults.rds","CIAnnualResults.csv")
+  zip(zipfile="trends.zip", files=filesWeWant)
   
   #######################
   fluxUSGS <- function(CIAnnualResults, eList, yearStart, yearEnd, ...){
@@ -528,55 +549,56 @@ flowDataTotal <- readRDS("flowDataTEST.rds")
     
   }
 
+  moreFiles <- c()
+  
   if(INFO$trend_92_12){
 
     setPDF("flux92", layout = list(height=4, width=4, fin=c(3.4,3.4)))
     fluxUSGS(CIAnnualResults, eList, INFO$trend_92_12_start, INFO$trend_end)
     graphics.off()
-    
+
     setPDF("conc92", layout = list(height=4, width=4, fin=c(3.4,3.4)))
     concUSGS(CIAnnualResults, eList, INFO$trend_92_12_start, INFO$trend_end)
     graphics.off()
-  }
-  
-  if(INFO$trend_82_12){
     
+    moreFiles <- c(moreFiles,"flux92.pdf","conc92.pdf")
+  }
+
+  if(INFO$trend_82_12){
+
     setPDF("flux82", layout = list(height=4, width=4, fin=c(3.4,3.4)))
     fluxUSGS(CIAnnualResults, eList, INFO$trend_82_12_start, INFO$trend_end)
     graphics.off()
-    
+
     setPDF("conc82", layout = list(height=4, width=4, fin=c(3.4,3.4)))
     concUSGS(CIAnnualResults, eList, INFO$trend_82_12_start, INFO$trend_end)
     graphics.off()
-
+    moreFiles <- c(moreFiles,"flux82.pdf","conc82.pdf")
   }
-  
+
   if(INFO$trend_72_12){
     setPDF("flux72", layout = list(height=4, width=4, fin=c(3.4,3.4)))
     fluxUSGS(CIAnnualResults, eList, INFO$trend_72_12_start, INFO$trend_end)
     graphics.off()
-    
+
     setPDF("conc72", layout = list(height=4, width=4, fin=c(3.4,3.4)))
     concUSGS(CIAnnualResults, eList, INFO$trend_72_12_start, INFO$trend_end)
     graphics.off()
+    moreFiles <- c(moreFiles,"flux72.pdf","conc72.pdf")
   }
-  
+
   if(INFO$trend_02_12){
     setPDF("flux02", layout = list(height=4, width=4, fin=c(3.4,3.4)))
     fluxUSGS(CIAnnualResults, eList, INFO$trend_02_12_start, INFO$trend_end)
     graphics.off()
-    
+
     setPDF("conc02", layout = list(height=4, width=4, fin=c(3.4,3.4)))
     concUSGS(CIAnnualResults, eList, INFO$trend_02_12_start, INFO$trend_end)
-    graphics.off() 
+    graphics.off()
+    moreFiles <- c(moreFiles,"flux02.pdf","conc02.pdf")
   }
   
-  file.remove("trends.zip")
-  files <-  list.files() 
-  filesWeDontWant <- c("trendsNOsbtools.R","condor.sub","simple.sh","packages.zip",
-                       "flowDataTEST.rds","infoDataTEST.rds","subDataTEST.rds","unzip",
-                       "rLibs","packages","condor_exec.exe","config.R","auth.R")
-  filesWeWant <- files[!(files %in% filesWeDontWant)]
+  filesWeWant <- c(filesWeWant,moreFiles)
   zip(zipfile="trends.zip", files=filesWeWant)
 
 ###########################

@@ -28,9 +28,9 @@ Mode <- function(x) {
 
 istatNames <- c("Min1Day","Min7Days","Min30Days","Median","Mean","Max30Days","Max7Days","Max1Day")
 
-infoDataTotal <- readRDS("infoDataTEST.rds")
-sampleDataTotal <- readRDS("sampleDataTEST.rds")
-flowDataTotal <- readRDS("flowDataTEST.rds")
+infoDataTotal <- readRDS("infoData.rds")
+sampleDataTotal <- readRDS("sampleData.rds")
+flowDataTotal <- readRDS("flowData.rds")
 
 
 ###########################
@@ -80,8 +80,7 @@ flowDataTotal <- readRDS("flowDataTEST.rds")
   Daily <- Daily[Daily$Date >= minTrend &
                    Daily$waterYear <= trendEnd,]
   eList <- mergeReport(INFO, Daily, Sample, interactive = FALSE)
-  eList$INFO$minNumUncen <- 50
-  # eList$INFO$minNumUncen <- 0.5
+
   eList$Sample <- eList$Sample[!is.na(eList$Sample$Q),]
   
   eList <- modelEstimation(eList, windowY = INFO$windowY, windowQ = INFO$windowQ, 
@@ -278,7 +277,7 @@ flowDataTotal <- readRDS("flowDataTEST.rds")
   errorMessages <- ""
   
   eList$Sample$Uncen[eList$Sample$Uncen == 0 & !is.na(eList$Sample$ConcLow)] <- 1
-  eList$INFO$minNumUncen <- 0.5
+  # eList$INFO$minNumUncen <- 0.5
   
   moreFiles <- c()
   
@@ -409,197 +408,197 @@ flowDataTotal <- readRDS("flowDataTEST.rds")
   zip(zipfile="trends.zip", files=filesWeWant)
   
   
-  nBoot = INFO$nBoot
-  bootBreak = INFO$bootBreak
-  blockLength = INFO$blockLength
-
-  # eList$INFO$minNumUncen <- 5
-  # eList$INFO$minNumObs <- 5
-
-  CIAnnualResults <- ciCalculations(eList,
-                                    nBoot=nBoot,
-                                    widthCI = 90,
-                                    blockLength=blockLength)
-
-  CIAnnualResults <- CIAnnualResults[CIAnnualResults$Year >= minTrendYear &
-                                       CIAnnualResults$Year <= INFO$trend_end, ]
-
-  saveRDS(CIAnnualResults, file="CIAnnualResults.rds")
-  write.csv(CIAnnualResults, file = "CIAnnualResults.csv", row.names = FALSE)
-
-  filesWeWant <- c(filesWeWant, "CIAnnualResults.rds","CIAnnualResults.csv")
-  zip(zipfile="trends.zip", files=filesWeWant)
-  
-  #######################
-  fluxUSGS <- function(CIAnnualResults, eList, yearStart, yearEnd, ...){
-    nBoot <- attr(CIAnnualResults, "nBoot")
-    blockLength <- attr(CIAnnualResults, "blockLength")
-    probs <- attr(CIAnnualResults, "probs")
-    
-    widthCI <- (max(probs) - min(probs))*100
-    
-    CIAnnualResults <- CIAnnualResults[CIAnnualResults$Year >= yearStart & CIAnnualResults$Year <= yearEnd,]
-    
-    localAnnualResults <- setupYears(paStart = eList$INFO$paStart, paLong = eList$INFO$paLong,
-                                     localDaily = eList$Daily)
-    periodName <- setSeasonLabel(localAnnualResults)
-    title3 <- paste(widthCI,"% CI on FN Concentration, Replicates =",nBoot,"Block=",blockLength,"days")
-    
-    title <- paste(eList$INFO$shortName, " ", eList$INFO$paramShortName, 
-                   "\n", periodName, "\n",title3)
-    
-    numYears <- length(localAnnualResults$DecYear)
-    subAnnualResults<-localAnnualResults[localAnnualResults$DecYear>=yearStart & localAnnualResults$DecYear <= yearEnd,]
-    
-    annConc <- subAnnualResults$Conc
-    concMax <- 1.05*max(c(CIAnnualResults$FNConcHigh,annConc), na.rm=TRUE)
-    
-    title3<-"\nFlux Estimates (dots) & Flow Normalized Flux (solid line) & 90% Confidence Intervals (dashed line)"
-    
-    subAnnualResults$Date <- as.Date(paste0(as.character(as.integer(subAnnualResults$DecYear)),"-04-01"))
-    col="black"
-    col <- list(points=col)
-    
-    fluxUnit <- fluxConst[shortCode=3][[1]]
-    unitFactorReturn <- fluxUnit@unitFactor
-    ylabel <- paste("Flux in",fluxUnit@unitUSGS)
-    
-    annFlux<-unitFactorReturn*subAnnualResults$Flux
-    fnFlux<-unitFactorReturn*subAnnualResults$FNFlux
-    xInfo <- generalAxis(x=subAnnualResults$DecYear, minVal=yearStart, maxVal=yearEnd,padPercent=0)  
-    combinedY <- c(annFlux,fnFlux)
-    yInfo <- generalAxis(x=combinedY, minVal=0, maxVal=NA, padPercent=5)
-    
-    fluxMax <- 1.05*max(c(CIAnnualResults$FNFluxHigh*unitFactorReturn,annFlux), na.rm=TRUE)
-    
-    currentPlot <- colorPlot(subAnnualResults$Date, annFlux, color=rep("points",length(annFlux)),
-                             Plot=list(what="points",color=col,size=0.05),
-                             yaxis.range=c(0,fluxMax), ytitle=ylabel,
-                             xaxis.range=c(as.Date(paste0(xInfo$bottom,"-01-01")),as.Date(paste0(xInfo$top,"-01-01"))), ...)
-    addXY(subAnnualResults$Date, fnFlux, Plot=list(color="black"))
-    xMid <- mean(currentPlot$xax$range)
-    yTop <- 0.9*diff(currentPlot$yax$range)+min(currentPlot$yax$range)
-    
-    names(INFO) <- gsub("\\.","_",names(INFO))
-    names(INFO) <- tolower(names(INFO))
-    
-    title<- title3 
-    
-    # addTitle(title, Justification = "center")
-    addCaption(paste(INFO$shortname," (", INFO$site_no ,")\n",INFO$paramshortname, ", ",periodName))
-    
-    addXY(as.Date(paste0(as.integer(CIAnnualResults$Year),"-04-01")), CIAnnualResults$FNFluxLow*unitFactorReturn, Plot=list(color="black", type="dashed"))
-    addXY(as.Date(paste0(as.integer(CIAnnualResults$Year),"-04-01")), CIAnnualResults$FNFluxHigh*unitFactorReturn, Plot=list(color="black", type="dashed"))
-  }
-  
-  concUSGS <- function(CIAnnualResults, eList, yearStart, yearEnd, ...){
-    nBoot <- attr(CIAnnualResults, "nBoot")
-    blockLength <- attr(CIAnnualResults, "blockLength")
-    probs <- attr(CIAnnualResults, "probs")
-    
-    CIAnnualResults <- CIAnnualResults[CIAnnualResults$Year >= yearStart & CIAnnualResults$Year <= yearEnd,]
-    
-    widthCI <- (max(probs) - min(probs))*100
-    
-    localAnnualResults <- setupYears(paStart = eList$INFO$paStart, paLong = eList$INFO$paLong,
-                                     localDaily = eList$Daily)
-    periodName <- setSeasonLabel(localAnnualResults)
-    title3 <- paste(widthCI,"% CI on FN Concentration, Replicates =",nBoot,"Block=",blockLength,"days")
-    
-    numYears <- length(localAnnualResults$DecYear)
-    subAnnualResults<-localAnnualResults[localAnnualResults$DecYear>=yearStart & localAnnualResults$DecYear <= yearEnd,]
-    
-    annConc <- subAnnualResults$Conc
-    concMax <- 1.05*max(c(CIAnnualResults$FNConcHigh,annConc), na.rm=TRUE)
-    
-    localAnnualResults <- setupYears(paStart=eList$INFO$paStart,paLong=eList$INFO$paLong, localDaily = eList$Daily)
-    
-    periodName<-setSeasonLabel(localAnnualResults=localAnnualResults)
-    title3<-"\nMean Concentration (dots) & Flow Normalized Concentration (solid line) & 90% Confidence Intervals (dashed line)" 
-    
-    xInfo <- generalAxis(x=localAnnualResults$DecYear, minVal=yearStart, maxVal=yearEnd, padPercent=0)
-    
-    combinedY <- c(localAnnualResults$Conc,localAnnualResults$FNConc[localAnnualResults$DecYear>xInfo$bottom & localAnnualResults$DecYear<xInfo$top])
-    yInfo <- generalAxis(x=combinedY, minVal=0, maxVal=concMax, padPercent=5, 
-                         units=eList$INFO$param.units)
-    
-    localAnnualResults$Date <- as.Date(paste0(as.character(as.integer(localAnnualResults$DecYear)),"-04-01"))
-    col <- list(points="black")
-    
-    currentPlot <- colorPlot(localAnnualResults$Date, localAnnualResults$Conc, rep("points",nrow(localAnnualResults)),
-                             Plot=list(what="points",color=col,size=0.05),
-                             yaxis.range=c(yInfo$bottom,yInfo$top), ytitle=yInfo$label,
-                             xaxis.range=c(as.Date(paste0(xInfo$bottom,"-01-01")),as.Date(paste0(xInfo$top,"-01-01"))), ...)
-    
-    xMid <- mean(currentPlot$xax$range)
-    yTop <- 0.9*diff(currentPlot$yax$range)+min(currentPlot$yax$range)
-    
-    addXY(localAnnualResults$Date, localAnnualResults$FNConc, Plot=list(color="black"))
-    
-    INFO <- eList$INFO
-    names(INFO) <- gsub("\\.","_",names(INFO))
-    names(INFO) <- tolower(names(INFO))
-    
-    title<-title3 
-    
-    # addTitle(title, Justification = "center")
-    addCaption(paste(INFO$shortname," (", INFO$site_no ,")\n",INFO$paramshortname, ", ",periodName))
-    addXY(as.Date(paste0(as.integer(CIAnnualResults$Year),"-04-01")), CIAnnualResults$FNConcLow, Plot=list(color="black", type="dashed"))
-    addXY(as.Date(paste0(as.integer(CIAnnualResults$Year),"-04-01")), CIAnnualResults$FNConcHigh, Plot=list(color="black", type="dashed"))
-    
-  }
-
-  moreFiles <- c()
-  
-  if(INFO$trend_92_12){
-
-    setPDF("flux92", layout = list(height=4, width=4, fin=c(3.4,3.4)))
-    fluxUSGS(CIAnnualResults, eList, INFO$trend_92_12_start, INFO$trend_end)
-    graphics.off()
-
-    setPDF("conc92", layout = list(height=4, width=4, fin=c(3.4,3.4)))
-    concUSGS(CIAnnualResults, eList, INFO$trend_92_12_start, INFO$trend_end)
-    graphics.off()
-    
-    moreFiles <- c(moreFiles,"flux92.pdf","conc92.pdf")
-  }
-
-  if(INFO$trend_82_12){
-
-    setPDF("flux82", layout = list(height=4, width=4, fin=c(3.4,3.4)))
-    fluxUSGS(CIAnnualResults, eList, INFO$trend_82_12_start, INFO$trend_end)
-    graphics.off()
-
-    setPDF("conc82", layout = list(height=4, width=4, fin=c(3.4,3.4)))
-    concUSGS(CIAnnualResults, eList, INFO$trend_82_12_start, INFO$trend_end)
-    graphics.off()
-    moreFiles <- c(moreFiles,"flux82.pdf","conc82.pdf")
-  }
-
-  if(INFO$trend_72_12){
-    setPDF("flux72", layout = list(height=4, width=4, fin=c(3.4,3.4)))
-    fluxUSGS(CIAnnualResults, eList, INFO$trend_72_12_start, INFO$trend_end)
-    graphics.off()
-
-    setPDF("conc72", layout = list(height=4, width=4, fin=c(3.4,3.4)))
-    concUSGS(CIAnnualResults, eList, INFO$trend_72_12_start, INFO$trend_end)
-    graphics.off()
-    moreFiles <- c(moreFiles,"flux72.pdf","conc72.pdf")
-  }
-
-  if(INFO$trend_02_12){
-    setPDF("flux02", layout = list(height=4, width=4, fin=c(3.4,3.4)))
-    fluxUSGS(CIAnnualResults, eList, INFO$trend_02_12_start, INFO$trend_end)
-    graphics.off()
-
-    setPDF("conc02", layout = list(height=4, width=4, fin=c(3.4,3.4)))
-    concUSGS(CIAnnualResults, eList, INFO$trend_02_12_start, INFO$trend_end)
-    graphics.off()
-    moreFiles <- c(moreFiles,"flux02.pdf","conc02.pdf")
-  }
-  
-  filesWeWant <- c(filesWeWant,moreFiles)
-  zip(zipfile="trends.zip", files=filesWeWant)
+  # nBoot = INFO$nBoot
+  # bootBreak = INFO$bootBreak
+  # blockLength = INFO$blockLength
+  # 
+  # # eList$INFO$minNumUncen <- 5
+  # # eList$INFO$minNumObs <- 5
+  # 
+  # CIAnnualResults <- ciCalculations(eList,
+  #                                   nBoot=nBoot,
+  #                                   widthCI = 90,
+  #                                   blockLength=blockLength)
+  # 
+  # CIAnnualResults <- CIAnnualResults[CIAnnualResults$Year >= minTrendYear &
+  #                                      CIAnnualResults$Year <= INFO$trend_end, ]
+  # 
+  # saveRDS(CIAnnualResults, file="CIAnnualResults.rds")
+  # write.csv(CIAnnualResults, file = "CIAnnualResults.csv", row.names = FALSE)
+  # 
+  # filesWeWant <- c(filesWeWant, "CIAnnualResults.rds","CIAnnualResults.csv")
+  # zip(zipfile="trends.zip", files=filesWeWant)
+  # 
+  # #######################
+  # fluxUSGS <- function(CIAnnualResults, eList, yearStart, yearEnd, ...){
+  #   nBoot <- attr(CIAnnualResults, "nBoot")
+  #   blockLength <- attr(CIAnnualResults, "blockLength")
+  #   probs <- attr(CIAnnualResults, "probs")
+  #   
+  #   widthCI <- (max(probs) - min(probs))*100
+  #   
+  #   CIAnnualResults <- CIAnnualResults[CIAnnualResults$Year >= yearStart & CIAnnualResults$Year <= yearEnd,]
+  #   
+  #   localAnnualResults <- setupYears(paStart = eList$INFO$paStart, paLong = eList$INFO$paLong,
+  #                                    localDaily = eList$Daily)
+  #   periodName <- setSeasonLabel(localAnnualResults)
+  #   title3 <- paste(widthCI,"% CI on FN Concentration, Replicates =",nBoot,"Block=",blockLength,"days")
+  #   
+  #   title <- paste(eList$INFO$shortName, " ", eList$INFO$paramShortName, 
+  #                  "\n", periodName, "\n",title3)
+  #   
+  #   numYears <- length(localAnnualResults$DecYear)
+  #   subAnnualResults<-localAnnualResults[localAnnualResults$DecYear>=yearStart & localAnnualResults$DecYear <= yearEnd,]
+  #   
+  #   annConc <- subAnnualResults$Conc
+  #   concMax <- 1.05*max(c(CIAnnualResults$FNConcHigh,annConc), na.rm=TRUE)
+  #   
+  #   title3<-"\nFlux Estimates (dots) & Flow Normalized Flux (solid line) & 90% Confidence Intervals (dashed line)"
+  #   
+  #   subAnnualResults$Date <- as.Date(paste0(as.character(as.integer(subAnnualResults$DecYear)),"-04-01"))
+  #   col="black"
+  #   col <- list(points=col)
+  #   
+  #   fluxUnit <- fluxConst[shortCode=3][[1]]
+  #   unitFactorReturn <- fluxUnit@unitFactor
+  #   ylabel <- paste("Flux in",fluxUnit@unitUSGS)
+  #   
+  #   annFlux<-unitFactorReturn*subAnnualResults$Flux
+  #   fnFlux<-unitFactorReturn*subAnnualResults$FNFlux
+  #   xInfo <- generalAxis(x=subAnnualResults$DecYear, minVal=yearStart, maxVal=yearEnd,padPercent=0)  
+  #   combinedY <- c(annFlux,fnFlux)
+  #   yInfo <- generalAxis(x=combinedY, minVal=0, maxVal=NA, padPercent=5)
+  #   
+  #   fluxMax <- 1.05*max(c(CIAnnualResults$FNFluxHigh*unitFactorReturn,annFlux), na.rm=TRUE)
+  #   
+  #   currentPlot <- colorPlot(subAnnualResults$Date, annFlux, color=rep("points",length(annFlux)),
+  #                            Plot=list(what="points",color=col,size=0.05),
+  #                            yaxis.range=c(0,fluxMax), ytitle=ylabel,
+  #                            xaxis.range=c(as.Date(paste0(xInfo$bottom,"-01-01")),as.Date(paste0(xInfo$top,"-01-01"))), ...)
+  #   addXY(subAnnualResults$Date, fnFlux, Plot=list(color="black"))
+  #   xMid <- mean(currentPlot$xax$range)
+  #   yTop <- 0.9*diff(currentPlot$yax$range)+min(currentPlot$yax$range)
+  #   
+  #   names(INFO) <- gsub("\\.","_",names(INFO))
+  #   names(INFO) <- tolower(names(INFO))
+  #   
+  #   title<- title3 
+  #   
+  #   # addTitle(title, Justification = "center")
+  #   addCaption(paste(INFO$shortname," (", INFO$site_no ,")\n",INFO$paramshortname, ", ",periodName))
+  #   
+  #   addXY(as.Date(paste0(as.integer(CIAnnualResults$Year),"-04-01")), CIAnnualResults$FNFluxLow*unitFactorReturn, Plot=list(color="black", type="dashed"))
+  #   addXY(as.Date(paste0(as.integer(CIAnnualResults$Year),"-04-01")), CIAnnualResults$FNFluxHigh*unitFactorReturn, Plot=list(color="black", type="dashed"))
+  # }
+  # 
+  # concUSGS <- function(CIAnnualResults, eList, yearStart, yearEnd, ...){
+  #   nBoot <- attr(CIAnnualResults, "nBoot")
+  #   blockLength <- attr(CIAnnualResults, "blockLength")
+  #   probs <- attr(CIAnnualResults, "probs")
+  #   
+  #   CIAnnualResults <- CIAnnualResults[CIAnnualResults$Year >= yearStart & CIAnnualResults$Year <= yearEnd,]
+  #   
+  #   widthCI <- (max(probs) - min(probs))*100
+  #   
+  #   localAnnualResults <- setupYears(paStart = eList$INFO$paStart, paLong = eList$INFO$paLong,
+  #                                    localDaily = eList$Daily)
+  #   periodName <- setSeasonLabel(localAnnualResults)
+  #   title3 <- paste(widthCI,"% CI on FN Concentration, Replicates =",nBoot,"Block=",blockLength,"days")
+  #   
+  #   numYears <- length(localAnnualResults$DecYear)
+  #   subAnnualResults<-localAnnualResults[localAnnualResults$DecYear>=yearStart & localAnnualResults$DecYear <= yearEnd,]
+  #   
+  #   annConc <- subAnnualResults$Conc
+  #   concMax <- 1.05*max(c(CIAnnualResults$FNConcHigh,annConc), na.rm=TRUE)
+  #   
+  #   localAnnualResults <- setupYears(paStart=eList$INFO$paStart,paLong=eList$INFO$paLong, localDaily = eList$Daily)
+  #   
+  #   periodName<-setSeasonLabel(localAnnualResults=localAnnualResults)
+  #   title3<-"\nMean Concentration (dots) & Flow Normalized Concentration (solid line) & 90% Confidence Intervals (dashed line)" 
+  #   
+  #   xInfo <- generalAxis(x=localAnnualResults$DecYear, minVal=yearStart, maxVal=yearEnd, padPercent=0)
+  #   
+  #   combinedY <- c(localAnnualResults$Conc,localAnnualResults$FNConc[localAnnualResults$DecYear>xInfo$bottom & localAnnualResults$DecYear<xInfo$top])
+  #   yInfo <- generalAxis(x=combinedY, minVal=0, maxVal=concMax, padPercent=5, 
+  #                        units=eList$INFO$param.units)
+  #   
+  #   localAnnualResults$Date <- as.Date(paste0(as.character(as.integer(localAnnualResults$DecYear)),"-04-01"))
+  #   col <- list(points="black")
+  #   
+  #   currentPlot <- colorPlot(localAnnualResults$Date, localAnnualResults$Conc, rep("points",nrow(localAnnualResults)),
+  #                            Plot=list(what="points",color=col,size=0.05),
+  #                            yaxis.range=c(yInfo$bottom,yInfo$top), ytitle=yInfo$label,
+  #                            xaxis.range=c(as.Date(paste0(xInfo$bottom,"-01-01")),as.Date(paste0(xInfo$top,"-01-01"))), ...)
+  #   
+  #   xMid <- mean(currentPlot$xax$range)
+  #   yTop <- 0.9*diff(currentPlot$yax$range)+min(currentPlot$yax$range)
+  #   
+  #   addXY(localAnnualResults$Date, localAnnualResults$FNConc, Plot=list(color="black"))
+  #   
+  #   INFO <- eList$INFO
+  #   names(INFO) <- gsub("\\.","_",names(INFO))
+  #   names(INFO) <- tolower(names(INFO))
+  #   
+  #   title<-title3 
+  #   
+  #   # addTitle(title, Justification = "center")
+  #   addCaption(paste(INFO$shortname," (", INFO$site_no ,")\n",INFO$paramshortname, ", ",periodName))
+  #   addXY(as.Date(paste0(as.integer(CIAnnualResults$Year),"-04-01")), CIAnnualResults$FNConcLow, Plot=list(color="black", type="dashed"))
+  #   addXY(as.Date(paste0(as.integer(CIAnnualResults$Year),"-04-01")), CIAnnualResults$FNConcHigh, Plot=list(color="black", type="dashed"))
+  #   
+  # }
+  # 
+  # moreFiles <- c()
+  # 
+  # if(INFO$trend_92_12){
+  # 
+  #   setPDF("flux92", layout = list(height=4, width=4, fin=c(3.4,3.4)))
+  #   fluxUSGS(CIAnnualResults, eList, INFO$trend_92_12_start, INFO$trend_end)
+  #   graphics.off()
+  # 
+  #   setPDF("conc92", layout = list(height=4, width=4, fin=c(3.4,3.4)))
+  #   concUSGS(CIAnnualResults, eList, INFO$trend_92_12_start, INFO$trend_end)
+  #   graphics.off()
+  #   
+  #   moreFiles <- c(moreFiles,"flux92.pdf","conc92.pdf")
+  # }
+  # 
+  # if(INFO$trend_82_12){
+  # 
+  #   setPDF("flux82", layout = list(height=4, width=4, fin=c(3.4,3.4)))
+  #   fluxUSGS(CIAnnualResults, eList, INFO$trend_82_12_start, INFO$trend_end)
+  #   graphics.off()
+  # 
+  #   setPDF("conc82", layout = list(height=4, width=4, fin=c(3.4,3.4)))
+  #   concUSGS(CIAnnualResults, eList, INFO$trend_82_12_start, INFO$trend_end)
+  #   graphics.off()
+  #   moreFiles <- c(moreFiles,"flux82.pdf","conc82.pdf")
+  # }
+  # 
+  # if(INFO$trend_72_12){
+  #   setPDF("flux72", layout = list(height=4, width=4, fin=c(3.4,3.4)))
+  #   fluxUSGS(CIAnnualResults, eList, INFO$trend_72_12_start, INFO$trend_end)
+  #   graphics.off()
+  # 
+  #   setPDF("conc72", layout = list(height=4, width=4, fin=c(3.4,3.4)))
+  #   concUSGS(CIAnnualResults, eList, INFO$trend_72_12_start, INFO$trend_end)
+  #   graphics.off()
+  #   moreFiles <- c(moreFiles,"flux72.pdf","conc72.pdf")
+  # }
+  # 
+  # if(INFO$trend_02_12){
+  #   setPDF("flux02", layout = list(height=4, width=4, fin=c(3.4,3.4)))
+  #   fluxUSGS(CIAnnualResults, eList, INFO$trend_02_12_start, INFO$trend_end)
+  #   graphics.off()
+  # 
+  #   setPDF("conc02", layout = list(height=4, width=4, fin=c(3.4,3.4)))
+  #   concUSGS(CIAnnualResults, eList, INFO$trend_02_12_start, INFO$trend_end)
+  #   graphics.off()
+  #   moreFiles <- c(moreFiles,"flux02.pdf","conc02.pdf")
+  # }
+  # 
+  # filesWeWant <- c(filesWeWant,moreFiles)
+  # zip(zipfile="trends.zip", files=filesWeWant)
 
 ###########################
 # }

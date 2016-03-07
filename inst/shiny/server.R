@@ -10,7 +10,7 @@ tempFolder <- tempdir()
 source("auth.R")
 
 #Raw Data
-rawDataID <- "5683f4b1e4b0a04ef4927c36"
+rawDataID <- "56ddb1ebe4b015c306fb05c9"
 infoFile <- "infoData.rds"
 item_file_download(rawDataID, names=infoFile,
                    destinations = file.path(tempFolder,infoFile), 
@@ -19,7 +19,7 @@ item_file_download(rawDataID, names=infoFile,
 genInfo <- readRDS(file.path(tempFolder,infoFile))
 
 #Summary data:
-summaryFolder <- "56844047e4b0a04ef493313e"
+summaryFolder <- "56ddb24be4b015c306fb0613"
 item_file_download(summaryFolder, names='bootOut.rds',
                    destinations = file.path(tempFolder,'bootOut.rds'), 
                    overwrite_file=TRUE)
@@ -29,9 +29,8 @@ bootOut <- readRDS(file.path(tempFolder,'bootOut.rds'))
 shinyServer(function(input, output, session) {
   
   eList_Start <- eventReactive(input$getData, {
-    source("config.R")
     id <- idText()
-    x <- query_item_identifier(type='naqwa', scheme = 'dataII_new', key = id)
+    x <- query_item_identifier(type='naqwa', scheme = 'dataIII', key = id)
     item_file_download(x$id, names="eList.rds",
                        destinations = file.path(tempFolder,"eList.rds"), 
                        overwrite_file=TRUE) 
@@ -40,10 +39,9 @@ shinyServer(function(input, output, session) {
   })
   
   rawBoot <- reactive({
-    eList_Start <- eList_Start()    
-    source("config.R")
+    eList_Start <- eList_Start()  
     id <- idText()
-    x <- query_item_identifier(type='naqwa', scheme = 'dataII_new', key = id)
+    x <- query_item_identifier(type='naqwa', scheme = 'dataIII', key = id)
     itemsInFolder <- item_list_files(x$id)
     trendsFile <- itemsInFolder$fname[grep(pattern = ".RData", itemsInFolder$fname)]
     item_file_download(x$id, names=trendsFile[1],
@@ -56,10 +54,9 @@ shinyServer(function(input, output, session) {
   })
   
   bands <- reactive({
-    eList_Start <- eList_Start()    
-    source("config.R")
+    eList_Start <- eList_Start() 
     id <- idText()
-    x <- query_item_identifier(type='naqwa', scheme = 'dataII_new', key = id)
+    x <- query_item_identifier(type='naqwa', scheme = 'dataIII', key = id)
     
     item_file_download(x$id, names="CIAnnualResults.rds",
                        destinations = file.path(tempFolder,"CIAnnualResults.rds"), 
@@ -682,7 +679,7 @@ shinyServer(function(input, output, session) {
   output$textMessage <- renderUI({
     eList <- eList()
     INFO <- eList$INFO
-    HTML(paste0("Data retrieved from sciencebase: ",INFO$station_nm))
+    HTML(paste0("Data retrieved from sciencebase: ",INFO$shortName))
     
   })
   

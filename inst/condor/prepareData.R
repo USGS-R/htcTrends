@@ -2,7 +2,7 @@ library(readr)
 library(lubridate)
 path <- "D:/LADData/RCode/htcTrends/inst/extdata"
 
-infoFile <- "Nut_test_info_with_blanktime_2.csv"
+infoFile <- "CIDA_trends_info.csv"
 
 infoDataTotal <- read_csv(file.path(path,infoFile))
 infoDataTotal$blank_start1 <- parse_date(infoDataTotal$blank_start1, format = "%m/%d/%Y")
@@ -16,11 +16,11 @@ moreLogic <- c("trend_72_12","trend_82_12","trend_92_12","trend_02_12")
 infoDataTotal[,moreLogic] <- sapply(infoDataTotal[,moreLogic], function(x) x == "Y")
 
 
-dataFile <- "Nut_Sed_DATA_01252015.csv"
+dataFile <- "CIDA_trends_data.csv"
 sampleDataTotal <- read_csv(file.path(path,dataFile))
 sampleDataTotal$date <- as.Date(parse_date_time(sampleDataTotal$date, c("%m/%d/%Y","%Y-%m-%d")))
 
-saveRDS(infoDataTotal, file="infoDataTEST.rds")
+saveRDS(infoDataTotal, file="infoData.rds")
 saveRDS(sampleDataTotal, file="sampleData.rds")
 
 
@@ -37,6 +37,8 @@ for(j in sampleSite){
     flowDataTotal <- read_csv(totalPathFlow, 
                               col_types = list(col_character(), col_character(), col_character(),
                                                col_date(),col_number(), col_number()))
+  } else {
+    cat(j,"\n")
   }
   
   subFlow <- flowDataTotal[,c("start_date","flow_gage")]
@@ -45,4 +47,4 @@ for(j in sampleSite){
   subFlow <- subFlow[order(subFlow$dateTime),]
   flowData <- rbind(flowData, subFlow)
 }
-saveRDS(flowData, file="flowDataTEST.rds")
+saveRDS(flowData, file="flowData.rds")

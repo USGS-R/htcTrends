@@ -185,8 +185,8 @@ shinyServer(function(input, output, session) {
     date1 = input$date1
     date2 = input$date2
     date3 = input$date3
-    qLow = input$flowRange[1]
-    qHigh = input$flowRange[2]
+    qLow = input$flowRangeMin
+    qHigh = input$flowRangeMax
     qMid = input$qMid
     qUnit = as.integer(input$qUnit)
     logScale = input$logScaleModel
@@ -195,8 +195,8 @@ shinyServer(function(input, output, session) {
     yearStart = as.integer(input$yearRange[1])
     yearEnd = as.integer(input$yearRange[2])
     maxDiff = input$maxDiff
-    from = as.numeric(input$concRange[1])
-    to = as.numeric(input$concRange[2])
+    from = as.numeric(input$concRangeMin)
+    to = as.numeric(input$concRangeMax)
     by = as.integer(input$by)+1
     rResid <- input$rResid
     
@@ -250,6 +250,14 @@ shinyServer(function(input, output, session) {
   
   output$modelPlotsOut <- renderPlot({
     modelPlotStuff()
+  })
+  
+  output$modelPlotsOut.ui <- renderUI({
+    heightOfGraph <- 500
+    if(input$flowPlots == "fluxBiasMulti"){
+      heightOfGraph <- 1600
+    }
+    plotOutput("modelPlotsOut", height = heightOfGraph)
   })
   
   output$downloadModelPlot <- downloadHandler(
@@ -332,12 +340,29 @@ shinyServer(function(input, output, session) {
     genInfo <- choseData()
     legendTitle <- attr(genInfo, "legendTitle")
     
-    genInfo <- genInfo[,c("param_nm","shortName","drainSqKm","colData")]
+    genInfo <- select(genInfo, Site_no, constitAbbrev, colData, Gage_number,
+                      shortName, drainSqKm,
+                      state_cd, huc_cd, Station_nm, ID, colData) 
     
-    names(genInfo) <- c("param_nm","shortName","drainSqKm",legendTitle)
+    names(genInfo)[names(genInfo) == "colData"] <- legendTitle
     
-    genInfoDT <- DT::datatable(genInfo, selection = "single")
-    genInfoDT <- formatRound(genInfoDT, legendTitle, 2) 
+    genInfoDT <- DT::datatable(genInfo, selection = "single", extensions = 'Buttons',
+                               options = list(dom = 'Bfrtip',
+                                              buttons = 
+                                                list('colvis', list(
+                                                  extend = 'collection',
+                                                  buttons = list(list(extend='csv',
+                                                                      filename = 'epHits'),
+                                                                 list(extend='excel',
+                                                                      filename = 'epHits'),
+                                                                 list(extend='pdf',
+                                                                      filename= 'epHits')),
+                                                  text = 'Download',
+                                                  filename= 'test'
+                                                )),
+                                              scrollX = TRUE,
+                                              pageLength = 5))
+    genInfoDT <- formatRound(genInfoDT, legendTitle, 2)
     genInfoDT
     
   })
@@ -369,17 +394,19 @@ shinyServer(function(input, output, session) {
   observe({
     eList <- eList()
     contours <- pretty(c(min(eList$surfaces[,,3]), max(eList$surfaces[,,3])), n=5)
-    updateSliderInput(session, "concRange", 
-                      min = 0.5*contours[1], max = 2*contours[length(contours)])
+    updateNumericInput(session, "concRangeMin", value = 0.5*contours[1])
+    updateNumericInput(session, "concRangeMax", value = 2*contours[length(contours)])
   })
   
   observe({
     eList <- eList()
     qFactor <- qConst[shortCode=as.integer(input$qUnit)][[1]]
     qFactor <- qFactor@qUnitFactor
-    updateSliderInput(session, "flowRange", 
-                      min = 0.5*as.numeric(round(qFactor * quantile(eList$Daily$Q, probs = 0.1),digits = 1)),
-                      max = 2*as.numeric(round(qFactor * quantile(eList$Daily$Q, probs = 0.9),digits = 1)))
+    updateNumericInput(session, "flowRangeMin", 
+                       value = 0.5*as.numeric(round(qFactor * quantile(eList$Daily$Q, probs = 0.1),digits = 1)))
+    
+    updateNumericInput(session, "flowRangeMax", 
+                       value = 2*as.numeric(round(qFactor * quantile(eList$Daily$Q, probs = 0.9),digits = 1)))
   })    
   
   observe({
@@ -461,7 +488,7 @@ shinyServer(function(input, output, session) {
                 "authenticate_sb()\n",
                 "id <- '", id, "'\n",
                 "tempFolder <- tempdir()\n",
-                "x <- query_item_identifier(type='naqwa', scheme = 'dataII_new', key = id)\n",
+                "x <- query_item_identifier(type='naqwa', scheme = 'dataIII', key = id)\n",
                 "item_file_download(x$id, names='eList.rds',\n",
                 "destinations = file.path(tempFolder,'eList.rds'),\n", 
                 "overwrite_file=TRUE)\n",
@@ -501,8 +528,8 @@ shinyServer(function(input, output, session) {
     date1 = input$date1
     date2 = input$date2
     date3 = input$date3
-    qLow = input$flowRange[1]
-    qHigh = input$flowRange[2]
+    qLow = input$flowRangeMin
+    qHigh = input$flowRangeMax
     qMid = input$qMid
     centerDate = input$centerDate
     yearStart = as.integer(input$yearRange[1])

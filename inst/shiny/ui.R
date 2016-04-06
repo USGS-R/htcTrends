@@ -17,55 +17,59 @@ header <- dashboardHeader(title = "NAWQA Trends Exploration")
 body <- dashboardBody(
   uiOutput("textMessage"),
   HTML("Choose data from map or chart, then click 'Get Data'"),
-  tabsetPanel(id='tabvals',
-              tabPanel("Choose Data",value = "choose", 
-                       tabsetPanel(id = "tabs",
-                                   tabPanel(title = tagList("Map", shiny::icon("map-marker")),
-                                            leaflet::leafletOutput("mymap")),
-                                   tabPanel(title = tagList("Table", shiny::icon("bars")),
-                                            fluidRow(column(1),
-                                                     column(11,
-                                                            DT::dataTableOutput('modelDataToChose'))))
-                                   
-                       )),
-              tabPanel("Analyze Data",value = "analyze",
-                       tabsetPanel(selected = "exploreData",id = "analyzeChoices",
-                                   tabPanel(title = tagList("Get Data",shiny::icon("folder-o")),
-                                            value = "getData",
-                                            h4("R Code to retrieve data from sciencebase:"),
-                                            verbatimTextOutput("getCode")
-                                   ),
-                                   tabPanel(title = tagList("MetaData",shiny::icon("bars")),
-                                            value = "metaData",
-                                            DT::dataTableOutput('metaData')
-                                   ),
-                                   tabPanel(title = tagList("Flow History",shiny::icon("bar-chart")),
-                                            value = "flowHistory",
-                                            h4("R Code:"),
-                                            verbatimTextOutput("flowCode"),
-                                            plotOutput("flowPlotsOut"),
-                                            downloadButton('downloadFlowPlot', 'Download Plot')),
-                                   tabPanel(title = tagList("Explore Data",shiny::icon("bar-chart")),
-                                            value = "exploreData",
-                                            htmlOutput("SampleText"),
-                                            h4("R Code:"),
-                                            verbatimTextOutput("dataCode"),
-                                            plotOutput("dataPlotsOut"),
-                                            downloadButton('downloadDataPlot', 'Download Plot')),
-                                   tabPanel(title = tagList("Explore Model",shiny::icon("bar-chart")),
-                                            value = "exploreModel",
-                                            h4("R Code:"),
-                                            verbatimTextOutput("modelCode"),
-                                            plotOutput("modelPlotsOut"),
-                                            downloadButton('downloadModelPlot', 'Download Plot')),
-                                   tabPanel(title = tagList("Explore Trend",shiny::icon("bar-chart")),
-                                            value = "exploreTrend",
-                                            h4("R Code:"),
-                                            verbatimTextOutput("trendCode"),
-                                            plotOutput("trendPlotsOut"),
-                                            downloadButton('downloadTrendPlot', 'Download Plot'))         
-                       )
-              )
+  tabItems(
+    tabItem(tabName = "choose", 
+            # tabsetPanel(id='tabvals',
+            #             tabPanel("Choose Data",value = "choose", 
+            tabsetPanel(id = "tabs",
+                        tabPanel(title = tagList("Map", shiny::icon("map-marker")),
+                                 leaflet::leafletOutput("mymap")),
+                        tabPanel(title = tagList("Table", shiny::icon("bars")),
+                                 fluidRow(column(1),
+                                          column(11,
+                                                 DT::dataTableOutput('modelDataToChose'))))
+                        
+            )),
+    tabItem(tabName = "analyze", 
+            # tabPanel("Analyze Data",value = "analyze",
+            tabsetPanel(selected = "exploreData",id = "analyzeChoices",
+                        tabPanel(title = tagList("Get Data",shiny::icon("folder-o")),
+                                 value = "getData",
+                                 h4("R Code to retrieve data from sciencebase:"),
+                                 verbatimTextOutput("getCode")
+                        ),
+                        tabPanel(title = tagList("MetaData",shiny::icon("bars")),
+                                 value = "metaData",
+                                 DT::dataTableOutput('metaData')
+                        ),
+                        tabPanel(title = tagList("Flow History",shiny::icon("bar-chart")),
+                                 value = "flowHistory",
+                                 h4("R Code:"),
+                                 verbatimTextOutput("flowCode"),
+                                 plotOutput("flowPlotsOut"),
+                                 downloadButton('downloadFlowPlot', 'Download Plot')),
+                        tabPanel(title = tagList("Explore Data",shiny::icon("bar-chart")),
+                                 value = "exploreData",
+                                 htmlOutput("SampleText"),
+                                 h4("R Code:"),
+                                 verbatimTextOutput("dataCode"),
+                                 plotOutput("dataPlotsOut"),
+                                 downloadButton('downloadDataPlot', 'Download Plot')),
+                        tabPanel(title = tagList("Explore Model",shiny::icon("bar-chart")),
+                                 value = "exploreModel",
+                                 h4("R Code:"),
+                                 verbatimTextOutput("modelCode"),
+                                 # plotOutput("modelPlotsOut"),
+                                 uiOutput("modelPlotsOut.ui"),
+                                 downloadButton('downloadModelPlot', 'Download Plot')),
+                        tabPanel(title = tagList("Explore Trend",shiny::icon("bar-chart")),
+                                 value = "exploreTrend",
+                                 h4("R Code:"),
+                                 verbatimTextOutput("trendCode"),
+                                 plotOutput("trendPlotsOut"),
+                                 downloadButton('downloadTrendPlot', 'Download Plot'))         
+            )
+    )
   ),
   fluidRow(
     column(1, HTML('<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" width="300" height="75"><path id="USGS" d="m234.95 15.44v85.037c0 17.938-10.132 36.871-40.691 36.871-27.569 0-40.859-14.281-40.859-36.871v-85.04h25.08v83.377c0 14.783 6.311 20.593 15.447 20.593 10.959 0 15.943-7.307 15.943-20.593v-83.377h25.08m40.79 121.91c-31.058 0-36.871-18.27-35.542-39.03h25.078c0 11.462 0.5 21.092 14.282 21.092 8.472 0 12.62-5.482 12.62-13.618 0-21.592-50.486-22.922-50.486-58.631 0-18.769 8.968-33.715 39.525-33.715 24.42 0 36.543 10.963 34.883 36.043h-24.419c0-8.974-1.492-18.106-11.627-18.106-8.136 0-12.953 4.486-12.953 12.787 0 22.757 50.493 20.763 50.493 58.465 0 31.06-22.75 34.72-41.85 34.72m168.6 0c-31.06 0-36.871-18.27-35.539-39.03h25.075c0 11.462 0.502 21.092 14.285 21.092 8.475 0 12.625-5.482 12.625-13.618 0-21.592-50.494-22.922-50.494-58.631 0-18.769 8.969-33.715 39.531-33.715 24.412 0 36.536 10.963 34.875 36.043h-24.412c0-8.974-1.494-18.106-11.625-18.106-8.144 0-12.955 4.486-12.955 12.787 0 22.757 50.486 20.763 50.486 58.465 0 31.06-22.75 34.72-41.85 34.72m-79.89-46.684h14.76v26.461l-1.229 0.454c-3.816 1.332-8.301 2.327-12.453 2.327-14.287 0-17.943-6.645-17.943-44.177 0-23.256 0-44.348 15.615-44.348 12.146 0 14.711 8.198 14.933 18.107h24.981c0.198-23.271-14.789-36.043-38.42-36.043-41.021 0-42.52 30.724-42.52 60.954 0 45.507 4.938 63.167 47.12 63.167 9.784 0 25.36-2.211 32.554-4.18 0.436-0.115 1.212-0.596 1.212-1.216v-59.598h-38.612v18.09" style="fill:rgb(40%,40%,40%); fill-opacity: 0.3" transform="scale(0.5)"/>
@@ -81,6 +85,10 @@ body <- dashboardBody(
     )
 
 sidebar <- dashboardSidebar(
+  sidebarMenu(id="tabvals",
+              menuItem("Choose Data", tabName = "choose", icon = icon("dashboard")),
+              menuItem("Analyze Data", tabName = "analyze", icon = icon("th"))
+  ),
   conditionalPanel(
     condition = "input.tabvals == 'choose'",
     selectInput("paramList", label = "Parameter", 
@@ -129,8 +137,8 @@ sidebar <- dashboardSidebar(
                         'input.modelPlots == "plotConcTimeSmooth" ||',
                         'input.modelPlots == "plotDiffContours" ||',
                         'input.modelPlots == "plotContours")'),
-      sliderInput("flowRange", "Discharge Range:",sep = "",
-                  min = 0, max = 1, value = c(0.1,0.9), round = TRUE)        
+      numericInput("flowRangeMin", "Min Flow:",value = 100), 
+      numericInput("flowRangeMax", "Max Flow:",value = 1000)       
     ), 
     conditionalPanel(
       condition = paste("input.analyzeChoices == 'exploreModel' && ",
@@ -157,8 +165,8 @@ sidebar <- dashboardSidebar(
     conditionalPanel(
       condition = paste("input.analyzeChoices == 'exploreModel' && ",
                         'input.modelPlots == "plotContours"'),
-      sliderInput("concRange", "Concentration Range:",sep = "",
-                  min = 0, max = 1, value = c(0.1,0.9), round = TRUE),
+      numericInput("concRangeMin", "Min Concentration:",value = 0.1), 
+      numericInput("concRangeMax", "Max Concentration:",value = 0.9),
       numericInput("by", label = h5("Number of divisions"), value = 5) 
     ),  
     conditionalPanel(

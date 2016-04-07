@@ -43,12 +43,12 @@ shinyServer(function(input, output, session) {
     id <- idText()
     x <- query_item_identifier(type='naqwa', scheme = 'dataIII', key = id)
     itemsInFolder <- item_list_files(x$id)
-    trendsFile <- itemsInFolder$fname[grep(pattern = ".RData", itemsInFolder$fname)]
+    trendsFile <- itemsInFolder$fname[grep(pattern = "eBoot", itemsInFolder$fname)]
     item_file_download(x$id, names=trendsFile[1],
                        destinations = file.path(tempFolder,trendsFile[1]), 
                        overwrite_file=TRUE) 
     
-    load(file.path(tempFolder,trendsFile[1]))
+    eBoot <- readRDS(file.path(tempFolder,trendsFile[1]))
     
     eBoot
   })
@@ -309,6 +309,16 @@ shinyServer(function(input, output, session) {
     }
   )
   
+  # output$downLoadEList <- downloadHandler(
+  #   filename = function() {
+  #     paste("eList", "rds", sep = ".")
+  #   },
+  #   content = function(file) {
+  #     
+  #     file.copy(file.path(tempFolder,"eList.rds"), file)
+  #   }
+  # )
+  
   output$SampleText <- renderUI({
     
     eList <- eList()
@@ -318,6 +328,42 @@ shinyServer(function(input, output, session) {
     } else {
       HTML("")
     }
+  })
+  
+  output$tableData <- DT::renderDataTable({
+    
+    
+    tableType <- input$getTables
+    
+    nameToSave <- gsub(".csv","", tableType)
+    
+    id <- idText()
+    x <- query_item_identifier(type='naqwa', scheme = 'dataIII', key = id)
+    itemsInFolder <- item_list_files(x$id)
+    trendsFile <- itemsInFolder$fname[grep(pattern = tableType, itemsInFolder$fname)]
+    item_file_download(x$id, names=trendsFile,
+                       destinations = file.path(tempFolder,trendsFile), 
+                       overwrite_file=TRUE) 
+    
+    tableData <- read.csv(file.path(tempFolder,trendsFile))
+    
+    DT::datatable(tableData, extensions = 'Buttons',
+                  rownames = FALSE,
+                  options = list(dom = 'Bfrtip',
+                                 buttons = 
+                                   list('colvis', list(
+                                     extend = 'collection',
+                                     buttons = list(list(extend='csv',
+                                                         filename = nameToSave),
+                                                    list(extend='excel',
+                                                         filename = nameToSave),
+                                                    list(extend='pdf',
+                                                         filename= nameToSave)),
+                                     text = 'Download',
+                                     filename= 'test'
+                                   )),
+                                 scrollX = TRUE)
+    )
   })
   
   output$metaData <- DT::renderDataTable({
@@ -332,8 +378,22 @@ shinyServer(function(input, output, session) {
                                                           "param_units","param_nm",
                                                           "paramNumber")]))
     
-    DT::datatable(flippedTable, colnames = "",
-                  options = list(pageLength = nrow(flippedTable)))
+    DT::datatable(flippedTable, colnames = "", extensions = 'Buttons',
+                  options = list(dom = 'Bfrtip',
+                                 buttons = 
+                                   list('colvis', list(
+                                     extend = 'collection',
+                                     buttons = list(list(extend='csv',
+                                                         filename = 'summary'),
+                                                    list(extend='excel',
+                                                         filename = 'summary'),
+                                                    list(extend='pdf',
+                                                         filename= 'summary')),
+                                     text = 'Download',
+                                     filename= 'test'
+                                   )),
+                                 scrollX = TRUE,
+                                 pageLength = nrow(flippedTable)))
   })
   
   output$modelDataToChose <- DT::renderDataTable({
@@ -352,11 +412,11 @@ shinyServer(function(input, output, session) {
                                                 list('colvis', list(
                                                   extend = 'collection',
                                                   buttons = list(list(extend='csv',
-                                                                      filename = 'epHits'),
+                                                                      filename = 'summary'),
                                                                  list(extend='excel',
-                                                                      filename = 'epHits'),
+                                                                      filename = 'summary'),
                                                                  list(extend='pdf',
-                                                                      filename= 'epHits')),
+                                                                      filename= 'summary')),
                                                   text = 'Download',
                                                   filename= 'test'
                                                 )),

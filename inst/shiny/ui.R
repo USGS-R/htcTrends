@@ -36,11 +36,16 @@ body <- dashboardBody(
                         tabPanel(title = tagList("Get Data",shiny::icon("folder-o")),
                                  value = "getData",
                                  h4("R Code to retrieve data from sciencebase:"),
-                                 verbatimTextOutput("getCode")
+                                 verbatimTextOutput("getCode"),
+                                 downloadButton('saveData', 'Get eList.rds')
                         ),
                         tabPanel(title = tagList("MetaData",shiny::icon("bars")),
                                  value = "metaData",
                                  DT::dataTableOutput('metaData')
+                        ),
+                        tabPanel(title = tagList("Table Data",shiny::icon("bars")),
+                                 value = "tableData",
+                                 DT::dataTableOutput('tableData')
                         ),
                         tabPanel(title = tagList("Flow History",shiny::icon("bar-chart")),
                                  value = "flowHistory",
@@ -102,11 +107,20 @@ sidebar <- dashboardSidebar(
     radioButtons("up", label = "Trend", inline = TRUE,
                  choices = c("Up", "Down")),
     htmlOutput("Click_text"),
-    actionButton("getData", "Get Data"),
-    downloadButton('saveData', 'Save Data')
+    actionButton("getData", "Get Data")
   ),
   conditionalPanel(
     condition = "input.tabvals == 'analyze'",
+    conditionalPanel(
+      condition = "input.analyzeChoices == 'tableData'",
+      selectInput("getTables", label = "Choose Table:", 
+                  choices = c("Flow Statistics"="flowStatistics.csv",
+                              "Concentration Change" = "tableChangeConc.csv",
+                              "Flux Change" = "tableChangeFlux.csv",
+                              "Flow Change" = "tableFlowChange.csv",
+                              "Trend" = "bootOut.csv"),
+                  selected = "flowStatistics.csv", multiple = FALSE)
+    ),
     conditionalPanel(
       condition = "input.analyzeChoices == 'exploreModel'",
       selectInput("modelPlots", label = "Choose Plot:", 

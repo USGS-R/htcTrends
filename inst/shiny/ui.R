@@ -19,8 +19,6 @@ body <- dashboardBody(
   HTML("Choose data from map or chart, then click 'Get Data'"),
   tabItems(
     tabItem(tabName = "choose", 
-            # tabsetPanel(id='tabvals',
-            #             tabPanel("Choose Data",value = "choose", 
             tabsetPanel(id = "tabs",
                         tabPanel(title = tagList("Map", shiny::icon("map-marker")),
                                  leaflet::leafletOutput("mymap")),
@@ -31,13 +29,16 @@ body <- dashboardBody(
                         
             )),
     tabItem(tabName = "analyze", 
-            # tabPanel("Analyze Data",value = "analyze",
             tabsetPanel(selected = "exploreData",id = "analyzeChoices",
                         tabPanel(title = tagList("Get Data",shiny::icon("folder-o")),
                                  value = "getData",
                                  h4("R Code to retrieve data from sciencebase:"),
                                  verbatimTextOutput("getCode"),
-                                 downloadButton('saveData', 'Get eList.rds')
+                                 downloadButton('saveData', 'Get eList.rds'),
+                                 selectInput("getRawData", label = "Choose Data", 
+                                             choices = c("Sample","Daily","INFO"),
+                                             selected = "Sample", multiple = FALSE),
+                                 DT::dataTableOutput('getRawDataTable')
                         ),
                         tabPanel(title = tagList("MetaData",shiny::icon("bars")),
                                  value = "metaData",
@@ -64,7 +65,6 @@ body <- dashboardBody(
                                  value = "exploreModel",
                                  h4("R Code:"),
                                  verbatimTextOutput("modelCode"),
-                                 # plotOutput("modelPlotsOut"),
                                  uiOutput("modelPlotsOut.ui"),
                                  downloadButton('downloadModelPlot', 'Download Plot')),
                         tabPanel(title = tagList("Explore Trend",shiny::icon("bar-chart")),
@@ -261,7 +261,7 @@ sidebar <- dashboardSidebar(
   ),
   sidebarMenu(id="source",
               menuItem("Source code", icon = icon("file-code-o"), 
-                       href = "https://github.com/USGS-R/toxEval/tree/master/inst/shiny")
+                       href = "https://github.com/USGS-R/htcTrends/tree/master/inst/shiny")
   )
 )
 

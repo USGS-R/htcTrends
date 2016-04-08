@@ -36,6 +36,9 @@ shinyServer(function(input, output, session) {
                        overwrite_file=TRUE) 
     
     eList_Start <- readRDS(file.path(tempFolder,"eList.rds"))
+    
+    eList_Start
+    
   })
   
   rawBoot <- reactive({
@@ -270,6 +273,16 @@ shinyServer(function(input, output, session) {
     }
   )
   
+  output$downloadSampleCSV <- downloadHandler(
+    
+    filename = function() {
+      "Sample.csv"
+    },
+    content = function(file) {
+      file.copy("Sample.csv", file)
+    }
+  )
+  
   output$downloadTrendPlot <- downloadHandler(
     
     filename = function() {
@@ -309,16 +322,6 @@ shinyServer(function(input, output, session) {
     }
   )
   
-  # output$downLoadEList <- downloadHandler(
-  #   filename = function() {
-  #     paste("eList", "rds", sep = ".")
-  #   },
-  #   content = function(file) {
-  #     
-  #     file.copy(file.path(tempFolder,"eList.rds"), file)
-  #   }
-  # )
-  
   output$SampleText <- renderUI({
     
     eList <- eList()
@@ -328,6 +331,32 @@ shinyServer(function(input, output, session) {
     } else {
       HTML("")
     }
+  })
+  
+  output$getRawDataTable <- DT::renderDataTable({
+    
+    eList <- eList()
+    tableType <- input$getRawData
+    
+    rawData <- eList[[tableType]]
+    
+    DT::datatable(rawData, extensions = 'Buttons',
+                  rownames = FALSE,
+                  options = list(dom = 'Bfrtip',
+                                 buttons = 
+                                   list('colvis', list(
+                                     extend = 'collection',
+                                     buttons = list(list(extend='csvHtml5',
+                                                         filename = tableType),
+                                                    list(extend='excel',
+                                                         filename = tableType),
+                                                    list(extend='pdf',
+                                                         filename= tableType)),
+                                     text = 'Download'
+                                   )),
+                                 scrollX = TRUE
+                  )
+    )
   })
   
   output$tableData <- DT::renderDataTable({
@@ -362,7 +391,8 @@ shinyServer(function(input, output, session) {
                                      text = 'Download',
                                      filename= 'test'
                                    )),
-                                 scrollX = TRUE)
+                                 scrollX = TRUE,
+                                 pageLength = 5)
     )
   })
   
@@ -417,8 +447,7 @@ shinyServer(function(input, output, session) {
                                                                       filename = 'summary'),
                                                                  list(extend='pdf',
                                                                       filename= 'summary')),
-                                                  text = 'Download',
-                                                  filename= 'test'
+                                                  text = 'Download'
                                                 )),
                                               scrollX = TRUE,
                                               pageLength = 5))

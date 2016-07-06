@@ -1,6 +1,6 @@
 executable=simple.sh
-arguments=trendsNOsbtools.R $(Process)
-transfer_input_files=trendsNOsbtools.R,unzip,.Renviron,packages.zip,flowData.rds, infoData.rds, sampleData.rds
+arguments=trendsNOsbtools_final_noCI.R $(Process)
+transfer_input_files=trendsNOsbtools_final_noCI.R,unzip,.Renviron,packages.zip,flowDataFinal.rds, infoDataFinal.rds, sampleDataFinal.rds
 universe = vanilla
 output = out/$(Process).out
 error = err/$(Process).err
@@ -15,4 +15,4 @@ when_to_transfer_output = ON_EXIT
 notification = never
 transfer_output_files = trends.zip
 transfer_output_remaps = "trends.zip = results/trends_$(Process).zip"
-queue 6906
+queue 6954
